@@ -1,8 +1,23 @@
+using Microsoft.EntityFrameworkCore;
 using SPAminesweepersweeper.Hubs;
+using webapi.Areas.Identity.Data;
+using webapi.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("webapiContextConnection") ?? throw new InvalidOperationException("Connection string 'webapiContextConnection' not found.");
 
+builder.Services.AddDbContext<webapiContext>(options => options.UseSqlServer(connectionString));
 
+builder.Services.AddDefaultIdentity<webapiUser>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false;
+    //options.Password.RequireNonAlphanumeric = false;
+    //options.Password.RequireLowercase = false;
+    //options.Password.RequireUppercase = false;
+}).AddEntityFrameworkStores<webapiContext>();
+
+//builder.Services.AddAuthentication()
+//    .AddIdentityServerJwt();
 
 builder.Services.AddControllers();
 
@@ -10,6 +25,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSignalR();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -17,23 +33,21 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    app.UseHsts();
 }
 
-
 app.UseHttpsRedirection();
-app.UseStaticFiles();
-app.UseRouting();
-app.UseAuthentication();
-app.UseIdentityServer();
+
+//app.UseRouting();
+
 app.UseAuthorization();
 
-app.MapControllerRoute(
-                name: "default",
-                pattern: "{controller}/{action=Index}/{id?}");
-app.MapRazorPages();
+//app.UseAuthentication();
+
+//app.UseIdentityServer();
+
+app.MapControllers();
+
 app.MapHub<ChatHub>("/chathub");
 
-//app.MapControllers();
-app.MapFallbackToFile("index.html");
+//app.MapFallbackToFile("index.html");
 app.Run();
