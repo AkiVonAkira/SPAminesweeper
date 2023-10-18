@@ -13,5 +13,9 @@ namespace SPAmineseweeper.Data
         {
 
         }
+
+        public DbSet<Board> BoardModel { get; set; }
+        public DbSet<Game> GameModel { get; set; }
+        public DbSet<Player> PlayerModel { get; set; }
     }
 }
