@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.EntityFrameworkCore;
 using SPAmineseweeper.Data;
 using SPAmineseweeper.Models;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
