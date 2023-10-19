@@ -8,5 +8,6 @@
         public int Width { get; set; }
         public string? Difficulty { get; set; }
         public int BombPercentage { get; set; }
+        public List<Tile>? Tiles { get; set; }
     }
 }
