@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SPAmineseweeper.Models;
 using System;
 using System.Collections.Generic;
@@ -60,6 +61,10 @@ namespace SPAmineseweeper.Controllers
         {
             return position.Item1 == x && position.Item2 == y;
         }
+
+       
+
+
     }
 }
 
