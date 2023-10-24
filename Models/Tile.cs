@@ -1,13 +1,16 @@
-﻿using System;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace SPAmineseweeper.Models
 {
     public class Tile
     {
+        [Key]
         public int Id { get; set; }
-        // [ForeignKey("Board")] is a data annotation that tells the database that the GameId property is a foreign key to the Game table.
+        [ForeignKey("Board")]
         public int BoardId { get; set; }
-        public int X { get; set; } 
-        public int Y { get; set; } 
+        public int X { get; set; }
+        public int Y { get; set; }
         public bool IsMine { get; set; }
         public int AdjacentMines { get; set; }
         public bool IsRevealed { get; set; }
