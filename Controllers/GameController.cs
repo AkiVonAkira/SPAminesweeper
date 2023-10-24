@@ -1,20 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
 using SPAmineseweeper.Data;
 using SPAmineseweeper.Models;
 
 namespace SPAmineseweeper.Controllers
 {
-    
-
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     [Authorize]
     public class GameController : ControllerBase
     {
@@ -47,28 +40,22 @@ namespace SPAmineseweeper.Controllers
 
 
         [HttpPost("start")]
-        public IActionResult StartGame(int playerId, int boardSize, int bombPercentage)
+        public IActionResult StartGame(int playerId, int boardSize, int bombPercentage, int boardId)
         {
             var player = _context.PlayerModel.Find(playerId);
             if (player == null)
             {
-                return NotFound("Player not found");
+                player = new Player { Id = playerId, };
+                //return NotFound("Player not found");
             }
 
-            var board = new Board
-            {
-                Height = boardSize,
-                Width = boardSize,
-                BombPercentage = bombPercentage,
-                //Tiles = Tiles(boardSize, bombPercentage)
-            };
+            var board = _context.BoardModel.Find(boardId);
 
             var game = new Game
             {
                 PlayerId = playerId,
                 Board = board,
                 GameStarted = DateTime.Now
-                
             };
 
             _context.GameModel.Add(game);
@@ -88,7 +75,7 @@ namespace SPAmineseweeper.Controllers
 
             game.GameEnded = DateTime.Now;
             // Fixa Logik för att räkna ut poäng eller annathär
-           // game.Score = CalculateScore(game);
+            // game.Score = CalculateScore(game);
 
             _context.SaveChanges();
 

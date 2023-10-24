@@ -7,7 +7,7 @@ namespace SPAmineseweeper.Models
     {
         [Key]
         public int Id { get; set; }
-        //"[ForeignKey("Player")]"" is a data annotation that tells the database that the PlayerId property is a foreign key to the Player table.
+        [ForeignKey("Player")]
         public int PlayerId { get; set; }
         [Required]
         public DateTime? GameStarted { get; set; }
@@ -16,7 +16,7 @@ namespace SPAmineseweeper.Models
         [Required]
         public double Score { get; set; }
 
-        public virtual Board? Board { get; set; } // navigerings property till Board
+        public virtual Board? Board { get; set; }
 
         public List<Player>? Players { get; set; }
     }

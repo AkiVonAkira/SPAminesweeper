@@ -1,14 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using DataAccess;
 using Microsoft.AspNetCore.Mvc;
-using Proxy.Models;
 using SPAmineseweeper.Data;
 using SPAmineseweeper.Models;
 
-
-// Jobba på denna i senare skede, Skapa controller som visar top 5 
 namespace SPAmineseweeper.Controllers
 {
     public class ScoreController : Controller
@@ -20,49 +14,55 @@ namespace SPAmineseweeper.Controllers
             _context = context;
         }
 
+        // GET: api/gettopscores (true or false)
         [HttpGet]
-        public IActionResult GetTopScores()
+        public IActionResult GetTopScores(bool isDaily)
         {
-            var topScores = _context.PlayerModel
+            DateTime targetDate = isDaily ? DateTime.Now.Date : DateTime.MinValue;
+
+            var topScores = _context.ScoreModel
+                .Where(score => isDaily ? score.Date.Date == targetDate : true)
                 .OrderByDescending(g => g.HighScore)
                 .Take(5)
                 .Select(g => new
                 {
-                    PlayerName = g.Id.Name, // Använd detta för att få spelarens namn
+                    g.Id,
                     g.HighScore
                 })
-                .List();
+                .ToList();
 
             return Ok(topScores);
         }
+
         // POST: api/score
         [HttpPost]
         public IActionResult AddScore(int playerId, int highScore)
         {
             var player = _context.PlayerModel.Find(playerId);
+            var score = _context.ScoreModel;
+
             if (player == null)
             {
                 return NotFound("Player not found");
             }
 
-            var newScore = new Player
+            var newScore = new Score
             {
-                Id = playerId,
                 HighScore = highScore,
+                Player = player,
                 Date = DateTime.Now
             };
 
-            _context.PlayerModel.Add(newScore);
+            _context.ScoreModel.Add(newScore);
             _context.SaveChanges();
 
             return CreatedAtAction(nameof(GetScore), new { id = newScore.Id }, newScore);
         }
 
-
         [HttpGet("{id}")]
         public IActionResult GetScore(int id)
         {
-            var score = _context.PlayerModel.Find(id);
+            var score = _context.ScoreModel.Find(id);
             if (score == null)
             {
                 return NotFound();
@@ -71,8 +71,4 @@ namespace SPAmineseweeper.Controllers
             return Ok(score);
         }
     }
-
-
 }
-
-
