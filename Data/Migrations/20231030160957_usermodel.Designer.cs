@@ -9,11 +9,11 @@ using SPAmineseweeper.Data;
 
 #nullable disable
 
-namespace SPAmineseweeper.Migrations
+namespace SPAmineseweeper.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20231024090238_ScoreLink")]
-    partial class ScoreLink
+    [Migration("20231030160957_usermodel")]
+    partial class usermodel
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -164,21 +164,6 @@ namespace SPAmineseweeper.Migrations
                     b.HasIndex("SubjectId", "SessionId", "Type");
 
                     b.ToTable("PersistedGrants", (string)null);
-                });
-
-            modelBuilder.Entity("GamePlayer", b =>
-                {
-                    b.Property<int>("GamesId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PlayersId")
-                        .HasColumnType("int");
-
-                    b.HasKey("GamesId", "PlayersId");
-
-                    b.HasIndex("PlayersId");
-
-                    b.ToTable("GamePlayer");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -343,6 +328,10 @@ namespace SPAmineseweeper.Migrations
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<string>("Nickname")
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
@@ -391,26 +380,16 @@ namespace SPAmineseweeper.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("BoardSize")
+                        .HasColumnType("int");
+
                     b.Property<int>("BombPercentage")
                         .HasColumnType("int");
 
                     b.Property<string>("Difficulty")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("GameId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Height")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Width")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("GameId")
-                        .IsUnique();
 
                     b.ToTable("BoardModel");
                 });
@@ -423,6 +402,9 @@ namespace SPAmineseweeper.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int?>("BoardId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("GameEnded")
                         .IsRequired()
                         .HasColumnType("datetime2");
@@ -431,35 +413,19 @@ namespace SPAmineseweeper.Migrations
                         .IsRequired()
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("PlayerId")
-                        .HasColumnType("int");
-
                     b.Property<double>("Score")
                         .HasColumnType("float");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("BoardId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("GameModel");
-                });
-
-            modelBuilder.Entity("SPAmineseweeper.Models.Player", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("Date")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PlayerModel");
                 });
 
             modelBuilder.Entity("SPAmineseweeper.Models.Score", b =>
@@ -476,12 +442,12 @@ namespace SPAmineseweeper.Migrations
                     b.Property<int>("HighScore")
                         .HasColumnType("int");
 
-                    b.Property<int?>("PlayerId")
-                        .HasColumnType("int");
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PlayerId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("ScoreModel");
                 });
@@ -520,21 +486,6 @@ namespace SPAmineseweeper.Migrations
                     b.HasIndex("BoardId");
 
                     b.ToTable("TileModel");
-                });
-
-            modelBuilder.Entity("GamePlayer", b =>
-                {
-                    b.HasOne("SPAmineseweeper.Models.Game", null)
-                        .WithMany()
-                        .HasForeignKey("GamesId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("SPAmineseweeper.Models.Player", null)
-                        .WithMany()
-                        .HasForeignKey("PlayersId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -588,22 +539,28 @@ namespace SPAmineseweeper.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("SPAmineseweeper.Models.Board", b =>
+            modelBuilder.Entity("SPAmineseweeper.Models.Game", b =>
                 {
-                    b.HasOne("SPAmineseweeper.Models.Game", null)
-                        .WithOne("Board")
-                        .HasForeignKey("SPAmineseweeper.Models.Board", "GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                    b.HasOne("SPAmineseweeper.Models.Board", "Board")
+                        .WithMany()
+                        .HasForeignKey("BoardId");
+
+                    b.HasOne("SPAmineseweeper.Models.ApplicationUser", "User")
+                        .WithMany("Games")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Board");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SPAmineseweeper.Models.Score", b =>
                 {
-                    b.HasOne("SPAmineseweeper.Models.Player", "Player")
+                    b.HasOne("SPAmineseweeper.Models.ApplicationUser", "User")
                         .WithMany("Scores")
-                        .HasForeignKey("PlayerId");
+                        .HasForeignKey("UserId");
 
-                    b.Navigation("Player");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SPAmineseweeper.Models.Tile", b =>
@@ -617,19 +574,16 @@ namespace SPAmineseweeper.Migrations
                     b.Navigation("Board");
                 });
 
+            modelBuilder.Entity("SPAmineseweeper.Models.ApplicationUser", b =>
+                {
+                    b.Navigation("Games");
+
+                    b.Navigation("Scores");
+                });
+
             modelBuilder.Entity("SPAmineseweeper.Models.Board", b =>
                 {
                     b.Navigation("Tiles");
-                });
-
-            modelBuilder.Entity("SPAmineseweeper.Models.Game", b =>
-                {
-                    b.Navigation("Board");
-                });
-
-            modelBuilder.Entity("SPAmineseweeper.Models.Player", b =>
-                {
-                    b.Navigation("Scores");
                 });
 #pragma warning restore 612, 618
         }

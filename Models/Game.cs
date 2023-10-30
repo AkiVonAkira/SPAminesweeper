@@ -7,8 +7,6 @@ namespace SPAmineseweeper.Models
     {
         [Key]
         public int Id { get; set; }
-        [ForeignKey("Player")]
-        public int PlayerId { get; set; }
         [Required]
         public DateTime? GameStarted { get; set; }
         [Required]
@@ -18,6 +16,8 @@ namespace SPAmineseweeper.Models
 
         public virtual Board? Board { get; set; }
 
-        public List<Player>? Players { get; set; }
+        [ForeignKey("User")]
+        public string? UserId { get; set; }
+        public virtual ApplicationUser? User { get; set; }
     }
 }

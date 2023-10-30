@@ -1,17 +1,21 @@
 ﻿using DataAccess;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SPAmineseweeper.Data;
 using SPAmineseweeper.Models;
+using System.Security.Claims;
 
 namespace SPAmineseweeper.Controllers
 {
     public class ScoreController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public ScoreController(ApplicationDbContext context)
+        public ScoreController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: api/gettopscores (true or false)
@@ -38,10 +42,11 @@ namespace SPAmineseweeper.Controllers
         [HttpPost]
         public IActionResult AddScore(int playerId, int highScore)
         {
-            var player = _context.PlayerModel.Find(playerId);
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = _userManager.Users.FirstOrDefault(x => x.Id == userId);
             var score = _context.ScoreModel;
 
-            if (player == null)
+            if (user == null)
             {
                 return NotFound("Player not found");
             }
@@ -49,7 +54,8 @@ namespace SPAmineseweeper.Controllers
             var newScore = new Score
             {
                 HighScore = highScore,
-                Player = player,
+                UserId = userId,
+                User = user,
                 Date = DateTime.Now
             };
 

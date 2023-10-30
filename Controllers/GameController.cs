@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SPAmineseweeper.Data;
 using SPAmineseweeper.Models;
+using System.Security.Claims;
 
 namespace SPAmineseweeper.Controllers
 {
@@ -12,15 +14,15 @@ namespace SPAmineseweeper.Controllers
     public class GameController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IWebHostEnvironment _hostingEnvironment;
 
-        // GET: /<controller>/
-        public GameController(ApplicationDbContext context, IWebHostEnvironment hostingEnvironment)
+        public GameController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment hostingEnvironment)
         {
             _context = context;
+            _userManager = userManager;
             _hostingEnvironment = hostingEnvironment;
         }
-
 
         [HttpGet("{id}")]
         public IActionResult GetGame(int id)
@@ -38,22 +40,17 @@ namespace SPAmineseweeper.Controllers
             return Ok(game);
         }
 
-
         [HttpPost("start")]
-        public IActionResult StartGame(int playerId, int boardSize, int bombPercentage, int boardId)
+        public IActionResult StartGame(int boardSize, int bombPercentage, int boardId)
         {
-            var player = _context.PlayerModel.Find(playerId);
-            if (player == null)
-            {
-                player = new Player { Id = playerId, };
-                //return NotFound("Player not found");
-            }
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = _userManager.Users.FirstOrDefault(x => x.Id == userId);
 
             var board = _context.BoardModel.Find(boardId);
 
             var game = new Game
             {
-                PlayerId = playerId,
+                UserId = userId,
                 Board = board,
                 GameStarted = DateTime.Now
             };

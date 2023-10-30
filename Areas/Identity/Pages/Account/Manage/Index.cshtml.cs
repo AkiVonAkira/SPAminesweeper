@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 #nullable disable
 
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using SPAmineseweeper.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace SPAmineseweeper.Areas.Identity.Pages.Account.Manage
 {
@@ -31,6 +28,7 @@ namespace SPAmineseweeper.Areas.Identity.Pages.Account.Manage
         ///     directly from your code. This API may change or be removed in future releases.
         /// </summary>
         public string Username { get; set; }
+        public string Nickname { get; set; }
 
         /// <summary>
         ///     This API supports the ASP.NET Core Identity default UI infrastructure and is not intended to be used
@@ -59,18 +57,22 @@ namespace SPAmineseweeper.Areas.Identity.Pages.Account.Manage
             [Phone]
             [Display(Name = "Phone number")]
             public string PhoneNumber { get; set; }
+            public string Nickname { get; set; }
         }
 
         private async Task LoadAsync(ApplicationUser user)
         {
             var userName = await _userManager.GetUserNameAsync(user);
             var phoneNumber = await _userManager.GetPhoneNumberAsync(user);
+            var nickName = user.Nickname;
 
             Username = userName;
+            Nickname = nickName;
 
             Input = new InputModel
             {
-                PhoneNumber = phoneNumber
+                PhoneNumber = phoneNumber,
+                Nickname = nickName
             };
         }
 
@@ -80,6 +82,12 @@ namespace SPAmineseweeper.Areas.Identity.Pages.Account.Manage
             if (user == null)
             {
                 return NotFound($"Unable to load user with ID '{_userManager.GetUserId(User)}'.");
+            }
+
+            var nickName = user.Nickname;
+            if (nickName == null)
+            {
+                return NotFound($"Unable to load nickname for User with ID '{_userManager.GetUserId(User)}'.");
             }
 
             await LoadAsync(user);
@@ -107,6 +115,18 @@ namespace SPAmineseweeper.Areas.Identity.Pages.Account.Manage
                 if (!setPhoneResult.Succeeded)
                 {
                     StatusMessage = "Unexpected error when trying to set phone number.";
+                    return RedirectToPage();
+                }
+            }
+
+            // Update the Nickname if it's different
+            if (Input.Nickname != user.Nickname)
+            {
+                user.Nickname = Input.Nickname;
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                {
+                    StatusMessage = "Unexpected error when trying to update the nickname.";
                     return RedirectToPage();
                 }
             }
