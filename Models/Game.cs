@@ -18,6 +18,8 @@ namespace SPAmineseweeper.Models
 
         public virtual Board? Board { get; set; }
 
-        public List<Player>? Players { get; set; }
+        [ForeignKey("User")]
+        public string? UserId { get; set; }
+        public virtual ApplicationUser? User { get; set; }
     }
 }

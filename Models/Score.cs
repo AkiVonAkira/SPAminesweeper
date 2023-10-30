@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SPAmineseweeper.Models
 {
@@ -8,7 +9,10 @@ namespace SPAmineseweeper.Models
         public int Id { get; set; }
         [Required]
         public int HighScore { get; set; }
-        public Player? Player { get; set; }
+
+        [ForeignKey("User")]
+        public string? UserId { get; set; }
+        public virtual ApplicationUser? User { get; set; }
         public DateTime Date { get; set; }
     }
 }
