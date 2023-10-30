@@ -1,6 +1,35 @@
-﻿import React, { Component } from 'react';
-import authService from './api-authorization/AuthorizeService'
-import axios from 'axios';
+﻿import React, { Component } from "react";
+import authService from "./api-authorization/AuthorizeService";
+import axios from "axios";
+import styled from "styled-components";
+
+const Board = styled.div`
+  display: grid;
+  grid-template-columns: repeat(var(--size), auto);
+  grid-template-rows: repeat(var(--size), auto);
+  gap: 0;
+  padding: 0.25em;
+  min-width: 10em;
+  min-height: 10em;
+  border-top: 4px #787976 solid;
+  border-left: 4px #787976 solid;
+  border-bottom: 4px #fefefe solid;
+  border-right: 4px #fefefe solid;
+`;
+const Tile = styled.div`
+  width: 2em;
+  height: 2em;
+  aspect-ratio: 1/1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2em;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+`;
+const TileButton = styled.button`
+  width: 100%;
+  height: 100%;
+`;
 
 export class FetchBoard extends Component {
   static displayName = FetchBoard.name;
@@ -16,11 +45,14 @@ export class FetchBoard extends Component {
 
   static renderBoard(board) {
     return (
-      <div className="minesweeper-board">
+      <Board
+        className="minesweeper-board"
+        style={{ "--size": `${board.boardSize}` }}
+      >
         {board.tiles.map((tile, index) => (
-          <div
+          <Tile
             key={index}
-            className={`tile ${tile.isRevealed ? 'revealed' : 'hidden'}`}
+            className={`tile /*${tile.isRevealed ? "revealed" : "hidden"}*/`}
           >
             {tile.isRevealed ? (
               tile.isMine ? (
@@ -30,20 +62,24 @@ export class FetchBoard extends Component {
               )
             ) : (
               // eslint-disable-next-line no-undef
-              <button onClick={() => handleTileClick(tile)}>
-                {tile.isFlagged ? '🚩' : ''}
-              </button>
+              <TileButton onClick={() => handleTileClick(tile)}>
+                {tile.isFlagged ? "🚩" : ""}
+              </TileButton>
             )}
-          </div>
+          </Tile>
         ))}
-      </div>
+      </Board>
     );
   }
 
   render() {
-    let contents = this.state.loading
-      ? <p><em>Loading...</em></p>
-      : FetchBoard.renderBoard(this.state.board);
+    let contents = this.state.loading ? (
+      <p>
+        <em>Loading...</em>
+      </p>
+    ) : (
+      FetchBoard.renderBoard(this.state.board)
+    );
 
     return (
       <div>
@@ -57,11 +93,11 @@ export class FetchBoard extends Component {
     const token = await authService.getAccessToken();
 
     const config = {
-      method: 'post',
-      url: '/api/board/createboard',
+      method: "post",
+      url: "/api/board/createboard",
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': token ? `Bearer ${token}` : '',
+        "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : ""
       },
       data: {
         boardSize: 10,
@@ -75,10 +111,10 @@ export class FetchBoard extends Component {
       if (response.status === 200) {
         this.setState({ board: response.data, loading: false });
       } else {
-        console.error('Failed to fetch board data', response);
+        console.error("Failed to fetch board data", response);
       }
     } catch (error) {
-      console.error('Error fetching board data', error);
+      console.error("Error fetching board data", error);
     }
   }
 }

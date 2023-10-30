@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace SPAmineseweeper.Migrations
+namespace SPAmineseweeper.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class burahhhhh : Migration
+    public partial class usermodel : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

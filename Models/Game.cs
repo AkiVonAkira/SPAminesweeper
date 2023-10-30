@@ -7,8 +7,6 @@ namespace SPAmineseweeper.Models
     {
         [Key]
         public int Id { get; set; }
-        [ForeignKey("Player")]
-        public int PlayerId { get; set; }
         [Required]
         public DateTime? GameStarted { get; set; }
         [Required]
