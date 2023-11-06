@@ -9,6 +9,7 @@ namespace SPAmineseweeper.Helper
         {
             var tileView = new TileView();
 
+            tileView.Id = tile.Id;
             tileView.X = tile.X;
             tileView.Y = tile.Y;
             tileView.IsMine = tile.IsMine;

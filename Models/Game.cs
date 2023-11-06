@@ -9,12 +9,15 @@ namespace SPAmineseweeper.Models
         public int Id { get; set; }
         [Required]
         public DateTime? GameStarted { get; set; }
-        [Required]
         public DateTime? GameEnded { get; set; }
-        [Required]
         public double Score { get; set; }
-
-        public virtual Board? Board { get; set; }
+        [Required]
+        public int BoardSize { get; set; }
+        [Required]
+        public int BombPercentage { get; set; }
+        [Required]
+        public string? Difficulty { get; set; }
+        public List<Tile>? Tiles { get; set; }
 
         [ForeignKey("User")]
         public string? UserId { get; set; }

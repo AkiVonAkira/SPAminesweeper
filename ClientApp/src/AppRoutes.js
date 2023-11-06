@@ -1,6 +1,6 @@
 import ApiAuthorzationRoutes from './components/api-authorization/ApiAuthorizationRoutes';
-import { FetchBoard } from "./components/FetchBoard";
 import { Home } from "./components/Home";
+import { StartGame } from './components/StartGame';
 
 const AppRoutes = [
   {
@@ -8,9 +8,9 @@ const AppRoutes = [
     element: <Home />
   },
   {
-    path: '/fetch-board',
+    path: '/start-game',
     requireAuth: true,
-    element: <FetchBoard />
+    element: <StartGame />
   },
   ...ApiAuthorzationRoutes
 ];

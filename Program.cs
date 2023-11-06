@@ -28,6 +28,7 @@ builder.Services.AddIdentityServer()
 builder.Services.AddAuthentication()
     .AddIdentityServerJwt();
 
+
 builder.Services.AddRazorPages();
 
 //builder.Services.AddAuthorization(options =>
