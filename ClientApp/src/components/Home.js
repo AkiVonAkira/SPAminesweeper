@@ -1,5 +1,5 @@
 ﻿import React, { Component } from "react";
-import { FetchBoard } from "./FetchBoard";
+import { StartGame } from "./StartGame";
 import styled from "styled-components";
 
 const GameContainer = styled.div`
@@ -24,7 +24,7 @@ export class Home extends Component {
       <GameContainer>
         <button></button>
         <input aria-label="gridSize"></input>
-        <FetchBoard />
+        <StartGame />
       </GameContainer>
     );
   }

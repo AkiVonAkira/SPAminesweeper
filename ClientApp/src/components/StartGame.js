@@ -25,6 +25,7 @@ const Tile = styled.div`
   justify-content: center;
   font-size: 2em;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  border: 2px #787976 solid;
 `;
 
 const TileButton = styled.button`
@@ -32,8 +33,8 @@ const TileButton = styled.button`
   height: 100%;
 `;
 
-export class FetchBoard extends Component {
-  static displayName = FetchBoard.name;
+export class StartGame extends Component {
+  static displayName = StartGame.name;
 
   constructor(props) {
     super(props);
@@ -62,8 +63,7 @@ export class FetchBoard extends Component {
                 tile.adjacentMines > 0 && <span>{tile.adjacentMines}</span>
               )
             ) : (
-              // eslint-disable-next-line no-undef
-              <TileButton onClick={() => handleTileClick(tile)}>
+              <TileButton onClick={() => handleTileClick(tile, game.id)}>
                 {tile.isFlagged ? "🚩" : ""}
               </TileButton>
             )}
@@ -79,7 +79,7 @@ export class FetchBoard extends Component {
         <em>Loading...</em>
       </p>
     ) : (
-      FetchBoard.renderGame(this.state.board)
+      StartGame.renderGame(this.state.board)
     );
 
     return (
@@ -120,6 +120,36 @@ export class FetchBoard extends Component {
     } catch (error) {
       console.error("Error fetching board data", error);
     }
+  }
+}
+
+const handleTileClick = async (tile, gameId) => {
+  const token = await authService.getAccessToken();
+
+  const config = {
+    method: "post",
+    url: "/api/game/revealtile",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token ? `Bearer ${token}` : "",
+    },
+    data: {
+      GameId: gameId,
+      X: tile.X,
+      Y: tile.Y
+    },
+  };
+
+  try {
+    const response = await axios(config);
+
+    if (response.status === 200) {
+      this.setState({ board: response.data });
+    } else {
+      console.error("Failed to reveal tile", response);
+    }
+  } catch (error) {
+    console.error("Error revealing tile", error);
   }
 }
 

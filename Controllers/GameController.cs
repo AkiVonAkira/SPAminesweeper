@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using SPAmineseweeper.Data;
 using SPAmineseweeper.Helper;
 using SPAmineseweeper.Models;
-using SPAmineseweeper.Models.ViewModels;
+using SPAmineseweeper.Models.ViewModels.Requests;
 using System.Security.Claims;
 
 namespace SPAmineseweeper.Controllers
@@ -42,8 +42,19 @@ namespace SPAmineseweeper.Controllers
         }
 
         [HttpPost("startgame")]
-        public IActionResult StartGame([FromBody] CreateGameView _game)
+        public IActionResult StartGame([FromBody] CreateGameRequest _game)
         {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var existingGame = _context.GameModel
+                .Include(g => g.Tiles)
+                .FirstOrDefault(g => g.UserId == userId && g.GameEnded == null);
+
+            if (existingGame != null)
+            {
+                var existingGameView = GameConverter.ConvertGame(existingGame);
+                return Ok(existingGameView);
+            }
+
             var game = new Game
             {
                 GameStarted = DateTime.Now,
@@ -52,20 +63,14 @@ namespace SPAmineseweeper.Controllers
                 BombPercentage = _game.BombPercentage,
                 Difficulty = _game.Difficulty,
                 Tiles = new List<Tile>(),
+                UserId = userId
             };
-            var gameStarted = game.GameStarted;
-            var score = game.Score;
-            var boardSize = game.BoardSize;
-            var bombPercentage = game.BombPercentage;
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var user = _userManager.Users.FirstOrDefault(x => x.Id == userId);
+            var minePositions = GetMinePositions(game.BoardSize, game.BombPercentage);
 
-            var minePositions = GetMinePositions(boardSize, bombPercentage);
-
-            for (int x = 0; x < boardSize; x++)
+            for (int x = 0; x < game.BoardSize; x++)
             {
-                for (int y = 0; y < boardSize; y++)
+                for (int y = 0; y < game.BoardSize; y++)
                 {
                     var tile = new Tile
                     {
@@ -75,39 +80,169 @@ namespace SPAmineseweeper.Controllers
                         IsRevealed = false,
                         IsFlagged = false,
                         AdjacentMines = 0,
-                        Game = game,
+                        Game = game
                     };
 
                     game.Tiles.Add(tile);
                     _context.TileModel.Add(tile);
-                    var _tileView = TileConverter.ConvertTiles(tile);
                 }
             }
+            CalculateAdjacentMines(game);
 
-            var gameView = GameConverter.ConvertGame(game);
             _context.GameModel.Add(game);
             _context.SaveChanges();
 
-            gameView.Id = game.Id;
+            var gameView = GameConverter.ConvertGame(game);
             return CreatedAtAction(nameof(GetGame), new { id = game.Id }, gameView);
         }
 
-        [HttpPut("{id}/end")]
+        [HttpPost("revealtile")]
+        public IActionResult RevealTile([FromBody] TileClickRequest request)
+        {
+            var game = _context.GameModel
+                .Include(g => g.Tiles)
+                .FirstOrDefault(g => g.Id == request.GameId);
+
+            if (game == null)
+            {
+                return NotFound("Game not found");
+            }
+
+            // Find the clicked tile
+            var clickedTile = game.Tiles.FirstOrDefault(tile => tile.X == request.X && tile.Y == request.Y);
+
+            if (clickedTile == null)
+            {
+                return NotFound("Tile not found");
+            }
+
+            if (clickedTile.IsRevealed)
+            {
+                return BadRequest("Tile is already revealed");
+            }
+
+            // Recursively reveal tiles
+            var revealedTiles = new List<Tile>();
+            RevealTileRecursive(game, clickedTile, revealedTiles);
+
+            // Check for game over conditions
+            bool isGameOver = CheckGameOver(game, revealedTiles);
+
+            // Update the game state
+            _context.SaveChanges();
+
+            // Return the updated game data
+            var updatedGame = _context.GameModel
+                .Include(g => g.Tiles)
+                .FirstOrDefault(g => g.Id == request.GameId);
+
+            if (isGameOver)
+            {
+                return Ok(new { game = updatedGame, message = "Game over" });
+            }
+            else
+            {
+                return Ok(updatedGame);
+            }
+        }
+
+        private void RevealTileRecursive(Game game, Tile tile, List<Tile> revealedTiles)
+        {
+            if (revealedTiles.Contains(tile) || tile.IsFlagged)
+            {
+                return;
+            }
+
+            revealedTiles.Add(tile);
+            tile.IsRevealed = true;
+
+            // If the tile has no adjacent mines, reveal neighboring tiles
+            if (tile.AdjacentMines == 0)
+            {
+                var neighbors = GetNeighbors(game, tile);
+                foreach (var neighbor in neighbors)
+                {
+                    RevealTileRecursive(game, neighbor, revealedTiles);
+                }
+            }
+        }
+
+        private List<Tile> GetNeighbors(Game game, Tile tile)
+        {
+            var neighbors = new List<Tile>();
+            for (int dx = -1; dx <= 1; dx++)
+            {
+                for (int dy = -1; dy <= 1; dy++)
+                {
+                    if (dx == 0 && dy == 0)
+                        continue;
+
+                    int neighborX = tile.X + dx;
+                    int neighborY = tile.Y + dy;
+
+                    var neighbor = game.Tiles.FirstOrDefault(t => t.X == neighborX && t.Y == neighborY);
+                    if (neighbor != null)
+                    {
+                        neighbors.Add(neighbor);
+                    }
+                }
+            }
+            return neighbors;
+        }
+
+        private bool CheckGameOver(Game game, List<Tile> revealedTiles)
+        {
+            // Check for game over conditions, e.g., all non-mine tiles are revealed
+            int totalTiles = game.Tiles.Count;
+            int totalMines = game.Tiles.Count(tile => tile.IsMine);
+
+            int revealedNonMineTiles = revealedTiles.Count(tile => !tile.IsMine);
+
+            return revealedNonMineTiles == totalTiles - totalMines;
+        }
+
+        [HttpPut("{id}/endgame")]
         public IActionResult EndGame(int id)
         {
             var game = _context.GameModel.Include(g => g.Tiles).FirstOrDefault(g => g.Id == id);
             if (game == null)
             {
-                return NotFound();
+                return NotFound("Game not found");
             }
 
-            game.GameEnded = DateTime.Now;
-            // Fixa Logik för att räkna ut poäng eller annathär
-            // game.Score = CalculateScore(game);
+            bool isGameOver = CheckGameOver(game, game.Tiles);
+
+            game.Score = CalculateScore(game);
 
             _context.SaveChanges();
 
-            return Ok(game);
+            if (isGameOver)
+            {
+                game.GameEnded = DateTime.Now;
+                var gameView = GameConverter.ConvertGame(game);
+                return Ok(new { game = gameView, message = "Game over" });
+            }
+            else
+            {
+                return Ok(game);
+            }
+        }
+
+        private double CalculateScore(Game game)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void CalculateAdjacentMines(Game game)
+        {
+            foreach (var tile in game.Tiles)
+            {
+                if (!tile.IsMine)
+                {
+                    var neighbors = GetNeighbors(game, tile);
+                    tile.AdjacentMines = neighbors.Count(neighbor => neighbor.IsMine);
+                }
+            }
         }
 
         private List<(int, int)> GetMinePositions(int boardSize, int bombPercentage)
@@ -127,46 +262,5 @@ namespace SPAmineseweeper.Controllers
         {
             return position.Item1 == x && position.Item2 == y;
         }
-
-        //[HttpPost("clicktile")]
-        //public IActionResult ClickTile([FromBody] TileClickRequest request)
-        //{
-        //    // Handle the click event, update the game state, and return the updated game board
-        //    // You need to implement the game logic here.
-        //    return null;
-        //}
-
-
-        /*
-        private List<Tile> GenerateTiles(int boardSize, int bombPercentage)
-        {
-            var minePositions = GetMinePositions(boardSize, bombPercentage);
-            var tiles = new List<Tile>();
-
-            for (int x = 0; x < boardSize; x++)
-            {
-                for (int y = 0; y < boardSize; y++)
-                {
-                    var tile = new Tile
-                    {
-                        X = x,
-                        Y = y,
-                        IsMine = minePositions.Any(position => PositionMatch(position, x, y)),
-                        IsRevealed = false,
-                        IsFlagged = false,
-                        AdjacentMines = 0,
-                        // BoardId = board.Id, // Om det är nödvändigt att hålla reda på BoardId här, annars sätt det i Board-objektet när det skapas
-                    };
-
-                    tiles.Add(tile);
-                }
-            }
-
-            return tiles;
-        }
-        */
-
-
     }
 }
-

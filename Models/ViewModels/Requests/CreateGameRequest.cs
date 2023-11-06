@@ -1,6 +1,6 @@
-﻿namespace SPAmineseweeper.Models.ViewModels
+﻿namespace SPAmineseweeper.Models.ViewModels.Requests
 {
-    public class CreateGameView
+    public class CreateGameRequest
     {
         public DateTime? GameStarted { get; set; }
         public DateTime? GameEnded { get; set; }
