@@ -22,6 +22,8 @@ export class Home extends Component {
   render() {
     return (
       <GameContainer>
+        <button></button>
+        <input aria-label="gridSize"></input>
         <FetchBoard />
       </GameContainer>
     );

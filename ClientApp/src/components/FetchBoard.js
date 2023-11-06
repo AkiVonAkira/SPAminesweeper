@@ -8,7 +8,6 @@ const Board = styled.div`
   grid-template-columns: repeat(var(--size), auto);
   grid-template-rows: repeat(var(--size), auto);
   gap: 0;
-  padding: 0.25em;
   min-width: 10em;
   min-height: 10em;
   border-top: 4px #787976 solid;
@@ -16,6 +15,7 @@ const Board = styled.div`
   border-bottom: 4px #fefefe solid;
   border-right: 4px #fefefe solid;
 `;
+
 const Tile = styled.div`
   width: 2em;
   height: 2em;
@@ -26,6 +26,7 @@ const Tile = styled.div`
   font-size: 2em;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 `;
+
 const TileButton = styled.button`
   width: 100%;
   height: 100%;
@@ -43,13 +44,13 @@ export class FetchBoard extends Component {
     this.populateBoardData();
   }
 
-  static renderBoard(board) {
+  static renderGame(game) {
     return (
       <Board
         className="minesweeper-board"
-        style={{ "--size": `${board.boardSize}` }}
+        style={{ "--size": `${game.boardSize}` }}
       >
-        {board.tiles.map((tile, index) => (
+        {game.tiles.map((tile, index) => (
           <Tile
             key={index}
             className={`tile /*${tile.isRevealed ? "revealed" : "hidden"}*/`}
@@ -78,7 +79,7 @@ export class FetchBoard extends Component {
         <em>Loading...</em>
       </p>
     ) : (
-      FetchBoard.renderBoard(this.state.board)
+      FetchBoard.renderGame(this.state.board)
     );
 
     return (
@@ -94,13 +95,14 @@ export class FetchBoard extends Component {
 
     const config = {
       method: "post",
-      url: "/api/board/createboard",
+      url: "/api/game/startgame",
       headers: {
         "Content-Type": "application/json",
         Authorization: token ? `Bearer ${token}` : ""
       },
       data: {
         boardSize: 10,
+        difficulty: "easy",
         bombPercentage: 5
       }
     };
@@ -110,6 +112,8 @@ export class FetchBoard extends Component {
 
       if (response.status === 200) {
         this.setState({ board: response.data, loading: false });
+        const boardId = response.data.id;
+        await populateGameData(boardId);
       } else {
         console.error("Failed to fetch board data", response);
       }
@@ -118,3 +122,32 @@ export class FetchBoard extends Component {
     }
   }
 }
+
+const populateGameData = async (boardId) => {
+  const token = await authService.getAccessToken();
+
+  const config = {
+    method: "post",
+    url: "/api/game/startgame",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: token ? `Bearer ${token}` : ""
+    },
+    data: {
+      Score: 0,
+      BoardId: boardId
+    }
+  };
+
+  try {
+    const response = await axios(config);
+
+    if (response.status === 200) {
+      this.setState({ game: response.data, loading: false });
+    } else {
+      console.error("Failed to fetch game data", response);
+    }
+  } catch (error) {
+    console.error("Error fetching game data", error);
+  }
+};

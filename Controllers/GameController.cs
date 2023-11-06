@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SPAmineseweeper.Data;
+using SPAmineseweeper.Helper;
 using SPAmineseweeper.Models;
+using SPAmineseweeper.Models.ViewModels;
 using System.Security.Claims;
 
 namespace SPAmineseweeper.Controllers
@@ -28,8 +30,7 @@ namespace SPAmineseweeper.Controllers
         public IActionResult GetGame(int id)
         {
             var game = _context.GameModel
-                             .Include(g => g.Board)
-                                .ThenInclude(b => b.Tiles)
+                             .Include(g => g.Tiles)
                              .FirstOrDefault(g => g.Id == id);
 
             if (game == null)
@@ -40,31 +41,61 @@ namespace SPAmineseweeper.Controllers
             return Ok(game);
         }
 
-        [HttpPost("start")]
-        public IActionResult StartGame(int boardSize, int bombPercentage, int boardId)
+        [HttpPost("startgame")]
+        public IActionResult StartGame([FromBody] CreateGameView _game)
         {
+            var game = new Game
+            {
+                GameStarted = DateTime.Now,
+                Score = _game.Score,
+                BoardSize = _game.BoardSize,
+                BombPercentage = _game.BombPercentage,
+                Difficulty = _game.Difficulty,
+                Tiles = new List<Tile>(),
+            };
+            var gameStarted = game.GameStarted;
+            var score = game.Score;
+            var boardSize = game.BoardSize;
+            var bombPercentage = game.BombPercentage;
+
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var user = _userManager.Users.FirstOrDefault(x => x.Id == userId);
 
-            var board = _context.BoardModel.Find(boardId);
+            var minePositions = GetMinePositions(boardSize, bombPercentage);
 
-            var game = new Game
+            for (int x = 0; x < boardSize; x++)
             {
-                UserId = userId,
-                Board = board,
-                GameStarted = DateTime.Now
-            };
+                for (int y = 0; y < boardSize; y++)
+                {
+                    var tile = new Tile
+                    {
+                        X = x,
+                        Y = y,
+                        IsMine = minePositions.Any(position => PositionMatch(position, x, y)),
+                        IsRevealed = false,
+                        IsFlagged = false,
+                        AdjacentMines = 0,
+                        Game = game,
+                    };
 
+                    game.Tiles.Add(tile);
+                    _context.TileModel.Add(tile);
+                    var _tileView = TileConverter.ConvertTiles(tile);
+                }
+            }
+
+            var gameView = GameConverter.ConvertGame(game);
             _context.GameModel.Add(game);
             _context.SaveChanges();
 
-            return CreatedAtAction(nameof(GetGame), new { id = game.Id }, game);
+            gameView.Id = game.Id;
+            return CreatedAtAction(nameof(GetGame), new { id = game.Id }, gameView);
         }
 
         [HttpPut("{id}/end")]
         public IActionResult EndGame(int id)
         {
-            var game = _context.GameModel.Include(g => g.Board.Tiles).FirstOrDefault(g => g.Id == id);
+            var game = _context.GameModel.Include(g => g.Tiles).FirstOrDefault(g => g.Id == id);
             if (game == null)
             {
                 return NotFound();
@@ -78,6 +109,33 @@ namespace SPAmineseweeper.Controllers
 
             return Ok(game);
         }
+
+        private List<(int, int)> GetMinePositions(int boardSize, int bombPercentage)
+        {
+            var random = new Random();
+            var minePositions = new List<(int, int)>();
+            for (int i = 0; i < bombPercentage; i++)
+            {
+                var x = random.Next(boardSize);
+                var y = random.Next(boardSize);
+                minePositions.Add((x, y));
+            }
+            return minePositions;
+        }
+
+        private bool PositionMatch((int, int) position, int x, int y)
+        {
+            return position.Item1 == x && position.Item2 == y;
+        }
+
+        //[HttpPost("clicktile")]
+        //public IActionResult ClickTile([FromBody] TileClickRequest request)
+        //{
+        //    // Handle the click event, update the game state, and return the updated game board
+        //    // You need to implement the game logic here.
+        //    return null;
+        //}
+
 
         /*
         private List<Tile> GenerateTiles(int boardSize, int bombPercentage)
