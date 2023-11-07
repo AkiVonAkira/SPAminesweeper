@@ -111,7 +111,7 @@ export class StartGame extends Component {
 
     try {
       const response = await axios(config);
-      if (response.status === 201) {
+      if (response.status === 200) {
         this.setState({ game: response.data, loading: false });
       } else {
         console.error("Failed to start a new game", response);
