@@ -51,6 +51,7 @@ namespace SPAmineseweeper.Controllers
 
             if (existingGame != null)
             {
+                _context.SaveChanges();
                 var existingGameView = GameConverter.ConvertGame(existingGame);
                 return Ok(existingGameView);
             }
@@ -116,9 +117,14 @@ namespace SPAmineseweeper.Controllers
                 return NotFound("Tile not found");
             }
 
-            if (clickedTile.IsRevealed)
+            // If the clicked tile is a mine, end the game
+            if (clickedTile.IsMine)
             {
-                return BadRequest("Tile is already revealed");
+                clickedTile.IsRevealed = true;
+                game.GameEnded = DateTime.Now;
+                _context.SaveChanges();
+
+                return Ok(GameConverter.ConvertGame(game));
             }
 
             // Recursively reveal tiles
@@ -138,11 +144,11 @@ namespace SPAmineseweeper.Controllers
 
             if (isGameOver)
             {
-                return Ok(new { game = updatedGame, message = "Game over" });
+                return Ok(GameConverter.ConvertGame(game));
             }
             else
             {
-                return Ok(updatedGame);
+                return Ok(GameConverter.ConvertGame(updatedGame));
             }
         }
 
@@ -212,20 +218,12 @@ namespace SPAmineseweeper.Controllers
 
             bool isGameOver = CheckGameOver(game, game.Tiles);
 
+            game.GameEnded = DateTime.Now;
             game.Score = CalculateScore(game);
 
             _context.SaveChanges();
 
-            if (isGameOver)
-            {
-                game.GameEnded = DateTime.Now;
-                var gameView = GameConverter.ConvertGame(game);
-                return Ok(new { game = gameView, message = "Game over" });
-            }
-            else
-            {
-                return Ok(game);
-            }
+            return Ok(GameConverter.ConvertGame(game));
         }
 
         private double CalculateScore(Game game)
