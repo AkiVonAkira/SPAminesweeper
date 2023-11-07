@@ -178,7 +178,7 @@ export class StartGame extends Component {
 
     const config = {
       method: "post",
-      url: "/api/game/revealtile",
+      url: "/api/tile/revealtile",
       headers: {
         "Content-Type": "application/json",
         Authorization: token ? `Bearer ${token} ` : ""
