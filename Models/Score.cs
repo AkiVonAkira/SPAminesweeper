@@ -8,7 +8,7 @@ namespace SPAmineseweeper.Models
         [Key]
         public int Id { get; set; }
         [Required]
-        public int HighScore { get; set; }
+        public double HighScore { get; set; }
 
         [ForeignKey("User")]
         public string? UserId { get; set; }

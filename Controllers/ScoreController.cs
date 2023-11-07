@@ -1,21 +1,30 @@
-﻿using DataAccess;
+﻿using Azure.Core;
+using DataAccess;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SPAmineseweeper.Data;
+using SPAmineseweeper.Helper;
 using SPAmineseweeper.Models;
 using System.Security.Claims;
 
 namespace SPAmineseweeper.Controllers
 {
-    public class ScoreController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Authorize]
+    public class ScoreController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IWebHostEnvironment _hostingEnvironment;
 
-        public ScoreController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public ScoreController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IWebHostEnvironment hostingEnvironment)
         {
             _context = context;
             _userManager = userManager;
+            _hostingEnvironment = hostingEnvironment;
         }
 
         // GET: api/gettopscores (true or false)
@@ -40,8 +49,16 @@ namespace SPAmineseweeper.Controllers
 
         // POST: api/score
         [HttpPost]
-        public IActionResult AddScore(int playerId, int highScore)
+        public IActionResult AddScore(int playerId, int gameId)
         {
+            var game = _context.GameModel
+                .FirstOrDefault(g => g.Id == gameId);
+
+            if (game == null)
+            {
+                return NotFound("Game not found");
+            }
+
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var user = _userManager.Users.FirstOrDefault(x => x.Id == userId);
             var score = _context.ScoreModel;
@@ -50,6 +67,7 @@ namespace SPAmineseweeper.Controllers
             {
                 return NotFound("Player not found");
             }
+            var highScore = ScoreHelper.CalculateScore(game);
 
             var newScore = new Score
             {
