@@ -1,5 +1,5 @@
 {
-  "name": "spamineseweeper",
+  "name": "spaminesweeper",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -58,7 +58,8 @@
   },
   "eslintConfig": {
     "extends": [
-      "react-app"
+      "react-app",
+      "prettier"
     ]
   },
   "browserslist": {

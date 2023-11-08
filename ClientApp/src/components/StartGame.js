@@ -25,7 +25,53 @@ const Tile = styled.div`
   justify-content: center;
   font-size: 2em;
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-  border: 2px #787976 solid;
+
+  /* Style for hidden tiles */
+  &.hidden {
+    border-top: 4px #787976 solid;
+    border-left: 4px #787976 solid;
+    border-bottom: 4px #fefefe solid;
+    border-right: 4px #fefefe solid;
+  }
+
+  /* Style for revealed tiles */
+  &.revealed {
+    border: 2px #787976 solid;
+  }
+`;
+
+const NumberedTile = styled.span`
+  & [adjacentMines="1"] {
+    color: blue;
+  }
+
+  & [adjacentMines="2"] {
+    color: green;
+  }
+
+  & [adjacentMines="3"] {
+    color: red;
+  }
+
+  & [adjacentMines="4"] {
+    color: purple;
+  }
+
+  & [adjacentMines="5"] {
+    color: maroon;
+  }
+
+  & [adjacentMines="6"] {
+    color: turquoise;
+  }
+
+  & [adjacentMines="7"] {
+    color: black;
+  }
+
+  & [adjacentMines="8"] {
+    color: gray;
+  }
 `;
 
 const TileButton = styled.button`
@@ -38,61 +84,17 @@ export class StartGame extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { board: [], loading: true };
+    this.state = { game: null, loading: false };
   }
 
-  componentDidMount() {
-    this.populateBoardData();
+  async componentDidMount() {
+    await this.startNewGame();
   }
 
-  static renderGame(game) {
-    return (
-      <Board
-        className="minesweeper-board"
-        style={{ "--size": `${game.boardSize}` }}
-      >
-        {game.tiles.map((tile, index) => (
-          <Tile
-            key={index}
-            className={`tile /*${tile.isRevealed ? "revealed" : "hidden"}*/`}
-          >
-            {tile.isRevealed ? (
-              tile.isMine ? (
-                <span className="mine">💣</span>
-              ) : (
-                tile.adjacentMines > 0 && <span>{tile.adjacentMines}</span>
-              )
-            ) : (
-              <TileButton onClick={() => handleTileClick(tile, game.id)}>
-                {tile.isFlagged ? "🚩" : ""}
-              </TileButton>
-            )}
-          </Tile>
-        ))}
-      </Board>
-    );
-  }
+  async startNewGame() {
+    this.setState({ loading: true });
 
-  render() {
-    let contents = this.state.loading ? (
-      <p>
-        <em>Loading...</em>
-      </p>
-    ) : (
-      StartGame.renderGame(this.state.board)
-    );
-
-    return (
-      <div>
-        <h1 id="tableLabel">Minesweeper</h1>
-        {contents}
-      </div>
-    );
-  }
-
-  async populateBoardData() {
     const token = await authService.getAccessToken();
-
     const config = {
       method: "post",
       url: "/api/game/startgame",
@@ -109,75 +111,90 @@ export class StartGame extends Component {
 
     try {
       const response = await axios(config);
-
       if (response.status === 200) {
-        this.setState({ board: response.data, loading: false });
-        const boardId = response.data.id;
-        await populateGameData(boardId);
+        this.setState({ game: response.data, loading: false });
       } else {
-        console.error("Failed to fetch board data", response);
+        console.error("Failed to start a new game", response);
       }
     } catch (error) {
-      console.error("Error fetching board data", error);
+      console.error("Error starting a new game", error);
     }
+  }
+
+  async handleTileClick(tile, gameId) {
+    const token = await authService.getAccessToken();
+    const config = {
+      method: "post",
+      url: "/api/tile/revealtile",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : ""
+      },
+      data: {
+        GameId: gameId,
+        X: tile.x,
+        Y: tile.y
+      }
+    };
+
+    try {
+      const response = await axios(config);
+      if (response.status === 200) {
+        this.setState({ game: response.data });
+      } else {
+        console.error("Failed to reveal tile", response);
+      }
+    } catch (error) {
+      console.error("Error revealing tile", error);
+    }
+  }
+
+  renderGame() {
+    const { game } = this.state;
+
+    if (!game) {
+      return <p>Loading...</p>;
+    }
+
+    const boardSize = game.boardSize;
+
+    return (
+      <Board style={{ "--size": boardSize }}>
+        {game.tiles.map((tile, index) => (
+          <Tile
+            key={index}
+            className={`tile ${tile.isRevealed ? "revealed" : "hidden"}`}
+          >
+            {tile.isRevealed ? (
+              tile.isMine ? (
+                <span className="mine">💣</span>
+              ) : (
+                tile.adjacentMines > 0 && (
+                  <NumberedTile adjacentMines={tile.adjacentMines}>
+                    {tile.adjacentMines}
+                  </NumberedTile>
+                )
+              )
+            ) : (
+              <TileButton
+                onClick={() => this.handleTileClick(tile, game.id)}
+                disabled={this.state.loading}
+              >
+                {tile.isFlagged ? "🚩" : ""}
+              </TileButton>
+            )}
+          </Tile>
+        ))}
+      </Board>
+    );
+  }
+
+  render() {
+    return (
+      <div>
+        <h1 id="tableLabel">Minesweeper</h1>
+        {this.renderGame()}
+      </div>
+    );
   }
 }
-
-const handleTileClick = async (tile, gameId) => {
-  const token = await authService.getAccessToken();
-
-  const config = {
-    method: "post",
-    url: "/api/game/revealtile",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token ? `Bearer ${token}` : "",
-    },
-    data: {
-      GameId: gameId,
-      X: tile.X,
-      Y: tile.Y
-    },
-  };
-
-  try {
-    const response = await axios(config);
-
-    if (response.status === 200) {
-      this.setState({ board: response.data });
-    } else {
-      console.error("Failed to reveal tile", response);
-    }
-  } catch (error) {
-    console.error("Error revealing tile", error);
-  }
-}
-
-const populateGameData = async (boardId) => {
-  const token = await authService.getAccessToken();
-
-  const config = {
-    method: "post",
-    url: "/api/game/startgame",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: token ? `Bearer ${token}` : ""
-    },
-    data: {
-      Score: 0,
-      BoardId: boardId
-    }
-  };
-
-  try {
-    const response = await axios(config);
-
-    if (response.status === 200) {
-      this.setState({ game: response.data, loading: false });
-    } else {
-      console.error("Failed to fetch game data", response);
-    }
-  } catch (error) {
-    console.error("Error fetching game data", error);
-  }
-};
