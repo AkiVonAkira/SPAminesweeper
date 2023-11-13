@@ -8,11 +8,21 @@ const BoardContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: #c2c2c2;
+  /* background-color: #c2c2c2;
   border-top: 0.25em #fefefe solid;
   border-left: 0.25em #fefefe solid;
   border-bottom: 0.25em #787976 solid;
-  border-right: 0.25em #787976 solid;
+  border-right: 0.25em #787976 solid; */
+  padding: 1em;
+  gap: 1em;
+`;
+
+const InfoContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  background-color: #c2c2c2;
   padding: 1em;
   gap: 1em;
 `;
@@ -22,8 +32,7 @@ const Board = styled.div`
   grid-template-columns: repeat(var(--size), auto);
   grid-template-rows: repeat(var(--size), auto);
   gap: 0;
-  min-width: 10em;
-  min-height: 10em;
+  max-width: 100vw;
   border-top: .25em #787976 solid;
   border-left: .25em #787976 solid;
   border-bottom: .25em #fefefe solid;
@@ -31,26 +40,27 @@ const Board = styled.div`
 `;
 
 const Tile = styled.div`
-  width: 2em;
-  height: 2em;
+  width: clamp(.01rem, 6vw, 4rem);
+  height: clamp(.01rem, 6vw, 4rem);
+  font-size: clamp(.01rem, 2.5vw, 2.5rem);
   aspect-ratio: 1/1;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2em;
+  max-width: 100%;
   /* text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4); */
 
   /* Style for hidden tiles */
   &.hidden {
-    border-top: .1em #fefefe solid;
-    border-left: .1em #fefefe solid;
-    border-bottom: .1em #787976 solid;
-    border-right: .1em #787976 solid;
+    border-top: .25rem #fefefe solid;
+    border-left: .25rem #fefefe solid;
+    border-bottom: .25rem #787976 solid;
+    border-right: .25rem #787976 solid;
   }
 
   /* Style for revealed tiles */
   &.revealed {
-    border: 1px #787976 solid;
+    border: .1rem #787976 solid;
   }
 
   /* Style for mines */
@@ -269,13 +279,13 @@ export class StartGame extends Component {
 
     return (
       <BoardContainer>
-        {isGameEnded && (
-          <div>
+        <InfoContainer>
+          {isGameEnded && (
             <h2>{game.gameWon ? "Congratulations! You won!" : "Sorry, you lost."}</h2>
-          </div>
-        )}
+          )}
 
-        {game.gameStarted && <TimeDisplay>{this.state.gameDuration}</TimeDisplay>}
+          {game.gameStarted && <TimeDisplay>{this.state.gameDuration}</TimeDisplay>}
+        </InfoContainer>
         <Board style={{ "--size": boardSize }}>
           {game.tiles.map((tile, index) => (
             <Tile

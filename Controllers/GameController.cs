@@ -94,14 +94,12 @@ namespace SPAmineseweeper.Controllers
             {
                 GameStarted = DateTime.Now,
                 Score = request.Score,
-                BoardSize = request.BoardSize,
-                BombPercentage = request.BombPercentage,
                 Difficulty = request.Difficulty,
                 Tiles = new List<Tile>(),
                 UserId = userId
             };
 
-            GameHelper.SetDifficultyParameters(game);
+            GameHelper.SetDifficultyParameters(game, request);
 
             for (int x = 0; x < game.BoardSize; x++)
             {

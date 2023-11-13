@@ -74,7 +74,7 @@ namespace SPAmineseweeper.Helper
             return false;
         }
 
-        internal static void SetDifficultyParameters(Game game)
+        internal static void SetDifficultyParameters(Game game, CreateGameRequest request)
         { 
             int gridSize = 10;
             int bombPercentage = 5;
@@ -96,6 +96,10 @@ namespace SPAmineseweeper.Helper
                 case "extreme":
                     gridSize = 14;
                     bombPercentage = 25;
+                    break;
+                case "custom":
+                    gridSize = request.BoardSize;
+                    bombPercentage = request.BombPercentage;
                     break;
                 default:
                     break;

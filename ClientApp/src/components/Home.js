@@ -14,8 +14,7 @@ const GameContainer = styled.div`
   border-right: 0.25em #787976 solid;
   padding: 1em;
   gap: 1em;
-  width: 100%;
-  height: 100%;
+  max-width: 100vw;
 `;
 
 const CreateButton = styled.button`
@@ -79,7 +78,7 @@ export class Home extends Component {
         <option value="medium">Medium</option>
         <option value="hard">Hard</option>
         <option value="extreme">Extreme</option>
-        <option value="custom">Custom</option>
+        {/* <option value="custom">Custom</option> */}
       </DifficultyDropdown>
     );
   }
