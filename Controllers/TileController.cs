@@ -101,7 +101,10 @@ namespace SPAmineseweeper.Controllers
         {
             return ProcessTileAction(request, (clickedTile, game) =>
             {
-                clickedTile.IsFlagged = !clickedTile.IsFlagged;
+                if (game.GameEnded == null)
+                {
+                    clickedTile.IsFlagged = !clickedTile.IsFlagged;
+                }
             });
         }
     }
