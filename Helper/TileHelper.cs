@@ -17,7 +17,7 @@ namespace SPAmineseweeper.Helper
             // If the tile has no adjacent mines, reveal neighboring tiles
             if (tile.AdjacentMines == 0)
             {
-                var neighbors = TileHelper.GetNeighbors(game, tile);
+                var neighbors = GetNeighbors(game, tile);
                 foreach (var neighbor in neighbors)
                 {
                     RevealTileRecursive(game, neighbor, revealedTiles);

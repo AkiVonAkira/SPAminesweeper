@@ -1,9 +1,25 @@
-﻿using SPAmineseweeper.Models;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.EntityFrameworkCore;
+using SPAmineseweeper.Controllers;
+using SPAmineseweeper.Data;
+using SPAmineseweeper.Models;
+using SPAmineseweeper.Models.ViewModels.Requests;
 
 namespace SPAmineseweeper.Helper
 {
     public class GameHelper
     {
+        public static void CreateMines(Game game)
+        {
+            var minePositions = RandomizeMinePositions(game.BoardSize, game.BombPercentage);
+
+            foreach (var tile in game.Tiles)
+            {
+                tile.IsMine = minePositions.Any(position => PositionMatch(position, tile.X, tile.Y));
+            }
+        }
+
         public static void CalculateAdjacentMines(Game game)
         {
             foreach (var tile in game.Tiles)
@@ -14,6 +30,11 @@ namespace SPAmineseweeper.Helper
                     tile.AdjacentMines = neighbors.Count(neighbor => neighbor.IsMine);
                 }
             }
+        }
+
+        public static bool PositionMatch((int, int) position, int x, int y)
+        {
+            return position.Item1 == x && position.Item2 == y;
         }
 
         public static List<(int, int)> RandomizeMinePositions(int boardSize, int bombPercentage)
@@ -29,17 +50,63 @@ namespace SPAmineseweeper.Helper
             return minePositions;
         }
 
-        public static bool CheckGameOver(Game game, List<Tile> revealedTiles)
+        public static bool CheckGameOver(Game game)
         {
-            // Check for game over conditions, e.g., all non-mine tiles are revealed
             int totalTiles = game.Tiles.Count;
             int totalMines = game.Tiles.Count(tile => tile.IsMine);
 
-            int revealedNonMineTiles = revealedTiles.Count(tile => !tile.IsMine);
+            int revealedNonMineTiles = game.Tiles.Count(tile => !tile.IsMine && tile.IsRevealed);
+            int revealedMineTiles = game.Tiles.Count(tile => tile.IsMine && tile.IsRevealed);
 
-            game.GameEnded = DateTime.Now;
+            if (revealedNonMineTiles == totalTiles - totalMines)
+            {
+                game.GameEnded = DateTime.Now;
+                game.GameWon = true;
+                return true;
+            }
 
-            return revealedNonMineTiles == totalTiles - totalMines;
+            if (revealedMineTiles > 0)
+            {
+                game.GameEnded = DateTime.Now;
+                game.GameWon = false;
+                return true;
+            }
+            return false;
+        }
+
+        internal static void SetDifficultyParameters(Game game, CreateGameRequest request)
+        { 
+            int gridSize = 10;
+            int bombPercentage = 5;
+
+            switch (game.Difficulty.ToLower())
+            {
+                case "easy":
+                    gridSize = 8;
+                    bombPercentage = 10;
+                    break;
+                case "medium":
+                    gridSize = 10;
+                    bombPercentage = 15;
+                    break;
+                case "hard":
+                    gridSize = 12;
+                    bombPercentage = 20;
+                    break;
+                case "extreme":
+                    gridSize = 14;
+                    bombPercentage = 25;
+                    break;
+                case "custom":
+                    gridSize = request.BoardSize;
+                    bombPercentage = request.BombPercentage;
+                    break;
+                default:
+                    break;
+            }
+
+            game.BoardSize = gridSize;
+            game.BombPercentage = bombPercentage;
         }
     }
 }

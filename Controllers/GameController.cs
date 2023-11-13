@@ -42,55 +42,21 @@ namespace SPAmineseweeper.Controllers
         }
 
         [HttpPost("startgame")]
-        public IActionResult StartGame([FromBody] CreateGameRequest _game)
+        public IActionResult StartGame([FromBody] CreateGameRequest request)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var existingGame = _context.GameModel
-                .Include(g => g.Tiles)
-                .FirstOrDefault(g => g.UserId == userId && g.GameEnded == null);
 
-            if (existingGame != null)
-            {
-                _context.SaveChanges();
-                var existingGameView = GameConverter.ConvertGame(existingGame);
-                return Ok(existingGameView);
-            }
+            // Check if an existing game is in progress
+            //var existingGame = CheckExistingGame(userId);
+            //if (existingGame != null)
+            //{
+            //    _context.SaveChanges();
+            //    return Ok(GameConverter.ConvertGame(existingGame));
+            //}
 
-            var game = new Game
-            {
-                GameStarted = DateTime.Now,
-                Score = _game.Score,
-                BoardSize = _game.BoardSize,
-                BombPercentage = _game.BombPercentage,
-                Difficulty = _game.Difficulty,
-                Tiles = new List<Tile>(),
-                UserId = userId
-            };
+            // Create a new game
+            var game = CreateNewGame(request, userId);
 
-            var minePositions = GameHelper.RandomizeMinePositions(game.BoardSize, game.BombPercentage);
-
-            for (int x = 0; x < game.BoardSize; x++)
-            {
-                for (int y = 0; y < game.BoardSize; y++)
-                {
-                    var tile = new Tile
-                    {
-                        X = x,
-                        Y = y,
-                        IsMine = minePositions.Any(position => PositionMatch(position, x, y)),
-                        IsRevealed = false,
-                        IsFlagged = false,
-                        AdjacentMines = 0,
-                        Game = game
-                    };
-
-                    game.Tiles.Add(tile);
-                    _context.TileModel.Add(tile);
-                }
-            }
-            GameHelper.CalculateAdjacentMines(game);
-
-            _context.GameModel.Add(game);
             _context.SaveChanges();
 
             var gameView = GameConverter.ConvertGame(game);
@@ -106,7 +72,7 @@ namespace SPAmineseweeper.Controllers
                 return NotFound("Game not found");
             }
 
-            bool isGameOver = GameHelper.CheckGameOver(game, game.Tiles);
+            bool isGameOver = GameHelper.CheckGameOver(game);
 
             game.Score = ScoreHelper.CalculateScore(game);
 
@@ -115,9 +81,50 @@ namespace SPAmineseweeper.Controllers
             return Ok(GameConverter.ConvertGame(game));
         }
 
-        private bool PositionMatch((int, int) position, int x, int y)
+        private Game CheckExistingGame(string userId)
         {
-            return position.Item1 == x && position.Item2 == y;
+            return _context.GameModel
+                .Include(g => g.Tiles)
+                .FirstOrDefault(g => g.UserId == userId && g.GameEnded == null);
+        }
+
+        private Game CreateNewGame(CreateGameRequest request, string userId)
+        {
+            var game = new Game
+            {
+                GameStarted = DateTime.Now,
+                Score = request.Score,
+                Difficulty = request.Difficulty,
+                Tiles = new List<Tile>(),
+                UserId = userId
+            };
+
+            GameHelper.SetDifficultyParameters(game, request);
+
+            for (int x = 0; x < game.BoardSize; x++)
+            {
+                for (int y = 0; y < game.BoardSize; y++)
+                {
+                    var tile = new Tile
+                    {
+                        X = x,
+                        Y = y,
+                        IsMine = false,
+                        IsRevealed = false,
+                        IsFlagged = false,
+                        AdjacentMines = 0,
+                        Game = game
+                    };
+
+                    game.Tiles.Add(tile);
+                    _context.TileModel.Add(tile);
+                }
+            }
+
+            GameHelper.CreateMines(game);
+            GameHelper.CalculateAdjacentMines(game);
+            _context.GameModel.Add(game);
+            return game;
         }
     }
 }
