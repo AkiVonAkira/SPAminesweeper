@@ -59,8 +59,7 @@
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
-      "prettier"
+      "react-app"
     ]
   },
   "browserslist": {

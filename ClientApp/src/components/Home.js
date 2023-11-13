@@ -8,12 +8,22 @@ const GameContainer = styled.div`
   align-items: center;
   justify-content: center;
   background-color: #c2c2c2;
-  border-top: 4px #fefefe solid;
-  border-left: 4px #fefefe solid;
-  border-bottom: 4px #787976 solid;
-  border-right: 4px #787976 solid;
+  border-top: .25em #fefefe solid;
+  border-left: .25em #fefefe solid;
+  border-bottom: .25em #787976 solid;
+  border-right: .25em #787976 solid;
   padding: 1em;
   gap: 1em;
+`;
+
+const CreateButton = styled.button`
+  background-color: #c2c2c2;
+  padding: .5em 1em;
+  margin: 0;
+  border-top: .25em #fefefe solid;
+  border-left: .25em #fefefe solid;
+  border-bottom: .25em #787976 solid;
+  border-right: .25em #787976 solid;
 `;
 
 export class Home extends Component {
@@ -22,8 +32,9 @@ export class Home extends Component {
   render() {
     return (
       <GameContainer>
-        <button></button>
         <input aria-label="gridSize"></input>
+        <input aria-label="bombPercentage"></input>
+        <CreateButton>Start Game</CreateButton>
         <StartGame />
       </GameContainer>
     );

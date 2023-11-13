@@ -47,5 +47,16 @@ namespace SPAmineseweeper.Helper
             }
             return neighbors;
         }
+
+        public static void ToggleFlag(Game game, Tile tile, List<Tile> flaggedTiles)
+        {
+            if (flaggedTiles.Contains(tile))
+            {
+                return;
+            }
+
+            flaggedTiles.Add(tile);
+            tile.IsFlagged = !tile.IsFlagged;
+        }
     }
 }

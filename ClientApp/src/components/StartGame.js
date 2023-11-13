@@ -10,10 +10,10 @@ const Board = styled.div`
   gap: 0;
   min-width: 10em;
   min-height: 10em;
-  border-top: 4px #787976 solid;
-  border-left: 4px #787976 solid;
-  border-bottom: 4px #fefefe solid;
-  border-right: 4px #fefefe solid;
+  border-top: .25em #787976 solid;
+  border-left: .25em #787976 solid;
+  border-bottom: .25em #fefefe solid;
+  border-right: .25em #fefefe solid;
 `;
 
 const Tile = styled.div`
@@ -24,23 +24,27 @@ const Tile = styled.div`
   align-items: center;
   justify-content: center;
   font-size: 2em;
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
+  /* text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4); */
 
   /* Style for hidden tiles */
   &.hidden {
-    border-top: 4px #787976 solid;
-    border-left: 4px #787976 solid;
-    border-bottom: 4px #fefefe solid;
-    border-right: 4px #fefefe solid;
+    border-top: .1em #fefefe solid;
+    border-left: .1em #fefefe solid;
+    border-bottom: .1em #787976 solid;
+    border-right: .1em #787976 solid;
   }
 
   /* Style for revealed tiles */
   &.revealed {
-    border: 2px #787976 solid;
+    border: 1px #787976 solid;
   }
-`;
 
-const NumberedTile = styled.span`
+  /* Style for mines */
+  &.mine {
+    background-color: red;
+  }
+
+  /* Style for adjecent mine numbers */
   & [adjacentMines="1"] {
     color: blue;
   }
@@ -77,6 +81,10 @@ const NumberedTile = styled.span`
 const TileButton = styled.button`
   width: 100%;
   height: 100%;
+  background-color: #c2c2c2;
+  margin: 0;
+  padding: 0;
+  border: 0;
 `;
 
 export class StartGame extends Component {
@@ -89,6 +97,34 @@ export class StartGame extends Component {
 
   async componentDidMount() {
     await this.startNewGame();
+
+    this.intervalId = setInterval(() => {
+      this.updateGameDuration();
+    }, 1000);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.intervalId);
+  }
+
+  updateGameDuration() {
+    this.setState((prevState) => {
+      if (prevState.game && prevState.game.gameStarted) {
+        const gameStarted = new Date(prevState.game.gameStarted);
+        const gameEnded = prevState.game.gameEnded
+          ? new Date(prevState.game.gameEnded)
+          : new Date();
+
+        const durationInSeconds = Math.floor((gameEnded - gameStarted) / 1000);
+        const gameDuration = `${durationInSeconds % 60}`;
+
+        return {
+          gameDuration,
+        };
+      }
+
+      return null;
+    });
   }
 
   async startNewGame() {
@@ -111,41 +147,85 @@ export class StartGame extends Component {
 
     try {
       const response = await axios(config);
-      if (response.status === 200) {
+      if (response.status >= 200 && response.status < 300) {
         this.setState({ game: response.data, loading: false });
       } else {
         console.error("Failed to start a new game", response);
       }
     } catch (error) {
       console.error("Error starting a new game", error);
+    } finally {
+      this.setState({ loading: false });
     }
   }
 
-  async handleTileClick(tile, gameId) {
-    const token = await authService.getAccessToken();
-    const config = {
-      method: "post",
-      url: "/api/tile/revealtile",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: token ? `Bearer ${token}` : ""
-      },
-      data: {
-        GameId: gameId,
-        X: tile.x,
-        Y: tile.y
-      }
-    };
+  async handleTileClick(tile, gameId, event) {
+    event.preventDefault();
+    if (event.button === 0) {
+      this.setState({ loading: true });
 
-    try {
-      const response = await axios(config);
-      if (response.status === 200) {
-        this.setState({ game: response.data });
-      } else {
-        console.error("Failed to reveal tile", response);
+      const token = await authService.getAccessToken();
+      const config = {
+        method: "post",
+        url: "/api/tile/revealtile",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : ""
+        },
+        data: {
+          GameId: gameId,
+          X: tile.x,
+          Y: tile.y
+        }
+      };
+
+      try {
+        const response = await axios(config);
+        if (response.status >= 200 && response.status < 300) {
+          this.setState({ game: response.data, loading: false });
+        } else {
+          console.error("Failed to reveal tile", response);
+        }
+      } catch (error) {
+        console.error("Error revealing tile", error);
+      } finally {
+        this.setState({ loading: false });
       }
-    } catch (error) {
-      console.error("Error revealing tile", error);
+    }
+  }
+
+  async handleFlagTile(tile, gameId, event) {
+    event.preventDefault();
+    if (event.button === 2) {
+      this.setState({ loading: true });
+
+      const token = await authService.getAccessToken();
+      const config = {
+        method: "post",
+        url: "/api/tile/flagtile",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: token ? `Bearer ${token}` : ""
+        },
+        data: {
+          GameId: gameId,
+          X: tile.x,
+          Y: tile.y
+        }
+      };
+
+      try {
+        const response = await axios(config);
+        if (response.status >= 200 && response.status < 300) {
+          this.setState({ game: response.data, loading: false });
+        } else {
+          console.error("Failed to reveal tile", response);
+        }
+      } catch (error) {
+        console.error("Error revealing tile", error);
+      } finally {
+        this.setState({ loading: false });
+      }
     }
   }
 
@@ -157,42 +237,52 @@ export class StartGame extends Component {
     }
 
     const boardSize = game.boardSize;
+    const isGameEnded = game.gameEnded !== null;
 
     return (
-      <Board style={{ "--size": boardSize }}>
-        {game.tiles.map((tile, index) => (
-          <Tile
-            key={index}
-            className={`tile ${tile.isRevealed ? "revealed" : "hidden"}`}
-          >
-            {tile.isRevealed ? (
-              tile.isMine ? (
-                <span className="mine">💣</span>
-              ) : (
-                tile.adjacentMines > 0 && (
-                  <NumberedTile adjacentMines={tile.adjacentMines}>
-                    {tile.adjacentMines}
-                  </NumberedTile>
+      <div>
+        {isGameEnded && (
+          <div>
+            <h2>{game.gameWon ? "Congratulations! You won!" : "Sorry, you lost."}</h2>
+          </div>
+        )}
+
+        {game.gameStarted && <p>Duration: {this.state.gameDuration}s</p>}
+        <Board style={{ "--size": boardSize }}>
+          {game.tiles.map((tile, index) => (
+            <Tile
+              key={index}
+              className={`tile ${tile.isRevealed ? "revealed" : "hidden"}`}
+            >
+              {tile.isRevealed ? (
+                tile.isMine ? (
+                  <span className="mine">💣</span>
+                ) : (
+                  tile.adjacentMines > 0 && (
+                    <span adjacentMines={tile.adjacentMines}>
+                      {tile.adjacentMines}
+                    </span>
+                  )
                 )
-              )
-            ) : (
-              <TileButton
-                onClick={() => this.handleTileClick(tile, game.id)}
-                disabled={this.state.loading}
-              >
-                {tile.isFlagged ? "🚩" : ""}
-              </TileButton>
-            )}
-          </Tile>
-        ))}
-      </Board>
+              ) : (
+                <TileButton
+                  onClick={(event) => this.handleTileClick(tile, game.id, event)}
+                  onContextMenu={(event) => this.handleFlagTile(tile, game.id, event)}
+                  disabled={this.state.loading}
+                >
+                  {tile.isFlagged ? "🚩" : ""}
+                </TileButton>
+              )}
+            </Tile>
+          ))}
+        </Board>
+      </div>
     );
   }
 
   render() {
     return (
       <div>
-        <h1 id="tableLabel">Minesweeper</h1>
         {this.renderGame()}
       </div>
     );

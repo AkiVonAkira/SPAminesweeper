@@ -10,53 +10,6 @@ namespace SPAmineseweeper.Helper
 {
     public class GameHelper
     {
-        public static Game CheckExistingGame(ApplicationDbContext context, string userId)
-        {
-            return context.GameModel
-                .Include(g => g.Tiles)
-                .FirstOrDefault(g => g.UserId == userId && g.GameEnded == null);
-        }
-
-        public static Game CreateNewGame(ApplicationDbContext context, CreateGameRequest request, string userId)
-        {
-            var game = new Game
-            {
-                GameStarted = DateTime.Now,
-                Score = request.Score,
-                BoardSize = request.BoardSize,
-                BombPercentage = request.BombPercentage,
-                Difficulty = request.Difficulty,
-                Tiles = new List<Tile>(),
-                UserId = userId
-            };
-
-            for (int x = 0; x < game.BoardSize; x++)
-            {
-                for (int y = 0; y < game.BoardSize; y++)
-                {
-                    var tile = new Tile
-                    {
-                        X = x,
-                        Y = y,
-                        IsMine = false,
-                        IsRevealed = false,
-                        IsFlagged = false,
-                        AdjacentMines = 0,
-                        Game = game
-                    };
-
-                    game.Tiles.Add(tile);
-                    context.TileModel.Add(tile);
-                }
-            }
-
-            CalculateAdjacentMines(game);
-
-            context.GameModel.Add(game);
-
-            return game;
-        }
-
         public static void CreateMines(Game game)
         {
             var minePositions = RandomizeMinePositions(game.BoardSize, game.BombPercentage);
@@ -118,7 +71,6 @@ namespace SPAmineseweeper.Helper
                 game.GameWon = false;
                 return true;
             }
-
             return false;
         }
     }

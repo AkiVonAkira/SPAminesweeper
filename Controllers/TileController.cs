@@ -6,6 +6,7 @@ using SPAmineseweeper.Models;
 using Microsoft.AspNetCore.Identity;
 using SPAmineseweeper.Data;
 using Microsoft.AspNetCore.Authorization;
+using SPAmineseweeper.Data.Migrations;
 
 namespace SPAmineseweeper.Controllers
 {
@@ -24,9 +25,9 @@ namespace SPAmineseweeper.Controllers
             _userManager = userManager;
             _hostingEnvironment = hostingEnvironment;
         }
+        private int revealedMineTiles;
 
-        [HttpPost("revealtile")]
-        public IActionResult RevealTile([FromBody] TileClickRequest request)
+        private IActionResult ProcessTileAction(TileClickRequest request, Action<Tile, Game> tileAction)
         {
             var game = _context.GameModel
                 .Include(g => g.Tiles)
@@ -37,7 +38,6 @@ namespace SPAmineseweeper.Controllers
                 return NotFound("Game not found");
             }
 
-            // Find the clicked tile
             var clickedTile = game.Tiles.FirstOrDefault(tile => tile.X == request.X && tile.Y == request.Y);
 
             if (clickedTile == null)
@@ -45,27 +45,19 @@ namespace SPAmineseweeper.Controllers
                 return NotFound("Tile not found");
             }
 
-            // If the clicked tile is a mine, end the game
-            if (clickedTile.IsMine)
-            {
-                clickedTile.IsRevealed = true;
-                game.GameEnded = DateTime.Now;
-                _context.SaveChanges();
+            revealedMineTiles = game.Tiles.Count(tile => tile.IsMine && tile.IsRevealed);
 
+            if (revealedMineTiles > 0)
+            {
                 return Ok(GameConverter.ConvertGame(game));
             }
 
-            // Recursively reveal tiles
-            var revealedTiles = new List<Tile>();
-            TileHelper.RevealTileRecursive(game, clickedTile, revealedTiles);
+            tileAction(clickedTile, game);
 
-            // Check for game over conditions
             bool isGameOver = GameHelper.CheckGameOver(game);
 
-            // Update the game state
             _context.SaveChanges();
 
-            // Return the updated game data
             var updatedGame = _context.GameModel
                 .Include(g => g.Tiles)
                 .FirstOrDefault(g => g.Id == request.GameId);
@@ -78,6 +70,43 @@ namespace SPAmineseweeper.Controllers
             {
                 return Ok(GameConverter.ConvertGame(updatedGame));
             }
+        }
+
+        [HttpPost("revealtile")]
+        public IActionResult RevealTile([FromBody] TileClickRequest request)
+        {
+            return ProcessTileAction(request, (clickedTile, game) =>
+            {
+                if (clickedTile.IsMine)
+                {
+                    clickedTile.IsRevealed = true;
+                    revealedMineTiles++;
+                    game.GameEnded = DateTime.Now;
+
+                    foreach (var tile in game.Tiles.Where(tile => tile.IsMine))
+                    {
+                        tile.IsRevealed = true;
+                    }
+                }
+                else
+                {
+                    var revealedTiles = new List<Tile>();
+                    TileHelper.RevealTileRecursive(game, clickedTile, revealedTiles);
+                }
+            });
+        }
+
+        [HttpPost("flagtile")]
+        public IActionResult FlagTile([FromBody] TileClickRequest request)
+        {
+            return ProcessTileAction(request, (clickedTile, game) =>
+            {
+                if (!clickedTile.IsRevealed)
+                {
+                    var flaggedTiles = new List<Tile>();
+                    TileHelper.ToggleFlag(game, clickedTile, flaggedTiles);
+                }
+            });
         }
     }
 }
