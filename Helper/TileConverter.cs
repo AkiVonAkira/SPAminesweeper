@@ -15,7 +15,6 @@ namespace SPAmineseweeper.Helper
             tileView.IsMine = tile.IsMine;
             tileView.AdjacentMines = tile.AdjacentMines;
             tileView.IsRevealed = tile.IsRevealed;
-            tileView.IsMine = tile.IsMine;
             tileView.IsFlagged = tile.IsFlagged;
 
             return tileView;
