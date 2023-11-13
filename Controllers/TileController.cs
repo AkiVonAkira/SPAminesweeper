@@ -101,11 +101,7 @@ namespace SPAmineseweeper.Controllers
         {
             return ProcessTileAction(request, (clickedTile, game) =>
             {
-                if (!clickedTile.IsRevealed)
-                {
-                    var flaggedTiles = new List<Tile>();
-                    TileHelper.ToggleFlag(game, clickedTile, flaggedTiles);
-                }
+                clickedTile.IsFlagged = !clickedTile.IsFlagged;
             });
         }
     }
