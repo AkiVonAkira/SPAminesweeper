@@ -60,7 +60,7 @@ namespace SPAmineseweeper.Controllers
             TileHelper.RevealTileRecursive(game, clickedTile, revealedTiles);
 
             // Check for game over conditions
-            bool isGameOver = GameHelper.CheckGameOver(game, revealedTiles);
+            bool isGameOver = GameHelper.CheckGameOver(game);
 
             // Update the game state
             _context.SaveChanges();
@@ -79,6 +79,5 @@ namespace SPAmineseweeper.Controllers
                 return Ok(GameConverter.ConvertGame(updatedGame));
             }
         }
-
     }
 }

@@ -12,6 +12,7 @@ namespace SPAmineseweeper.Helper
             gameView.Id = game.Id;
             gameView.GameStarted = game.GameStarted;
             gameView.GameEnded = game.GameEnded;
+            gameView.GameWon = game.GameWon;
             gameView.Score = game.Score;
             gameView.BoardSize = game.BoardSize;
             gameView.BombPercentage = game.BombPercentage;
