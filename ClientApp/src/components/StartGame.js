@@ -3,6 +3,20 @@ import authService from "./api-authorization/AuthorizeService";
 import axios from "axios";
 import styled from "styled-components";
 
+const BoardContainer = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: #c2c2c2;
+  border-top: 0.25em #fefefe solid;
+  border-left: 0.25em #fefefe solid;
+  border-bottom: 0.25em #787976 solid;
+  border-right: 0.25em #787976 solid;
+  padding: 1em;
+  gap: 1em;
+`;
+
 const Board = styled.div`
   display: grid;
   grid-template-columns: repeat(var(--size), auto);
@@ -87,6 +101,17 @@ const TileButton = styled.button`
   border: 0;
 `;
 
+const TimeDisplay = styled.p`
+  background-color: #c2c2c2;
+  color: red;
+  padding: 0.5em 1em;
+  margin: 0;
+  border-top: 0.25em #fefefe solid;
+  border-left: 0.25em #fefefe solid;
+  border-bottom: 0.25em #787976 solid;
+  border-right: 0.25em #787976 solid;
+`;
+
 export class StartGame extends Component {
   static displayName = StartGame.name;
 
@@ -116,7 +141,7 @@ export class StartGame extends Component {
           : new Date();
 
         const durationInSeconds = Math.floor((gameEnded - gameStarted) / 1000);
-        const gameDuration = `${durationInSeconds % 60}`;
+        const gameDuration = `${String(Math.floor(durationInSeconds / 60)).padStart(2, '0')}:${String(durationInSeconds % 60).padStart(2, '0')}`;
 
         return {
           gameDuration,
@@ -127,7 +152,7 @@ export class StartGame extends Component {
     });
   }
 
-  async startNewGame() {
+  async startNewGame(onGameStarted) {
     this.setState({ loading: true });
 
     const token = await authService.getAccessToken();
@@ -139,9 +164,9 @@ export class StartGame extends Component {
         Authorization: token ? `Bearer ${token}` : ""
       },
       data: {
-        boardSize: 10,
-        difficulty: "easy",
-        bombPercentage: 5
+        boardSize: this.props.boardSize,
+        difficulty: this.props.difficulty,
+        bombPercentage: this.props.bombPercentage
       }
     };
 
@@ -149,6 +174,9 @@ export class StartGame extends Component {
       const response = await axios(config);
       if (response.status >= 200 && response.status < 300) {
         this.setState({ game: response.data, loading: false });
+        if (onGameStarted) {
+          onGameStarted(response.data);
+        }
       } else {
         console.error("Failed to start a new game", response);
       }
@@ -240,14 +268,14 @@ export class StartGame extends Component {
     const isGameEnded = game.gameEnded !== null;
 
     return (
-      <div>
+      <BoardContainer>
         {isGameEnded && (
           <div>
             <h2>{game.gameWon ? "Congratulations! You won!" : "Sorry, you lost."}</h2>
           </div>
         )}
 
-        {game.gameStarted && <p>Duration: {this.state.gameDuration}s</p>}
+        {game.gameStarted && <TimeDisplay>{this.state.gameDuration}</TimeDisplay>}
         <Board style={{ "--size": boardSize }}>
           {game.tiles.map((tile, index) => (
             <Tile
@@ -276,15 +304,13 @@ export class StartGame extends Component {
             </Tile>
           ))}
         </Board>
-      </div>
+      </BoardContainer>
     );
   }
 
   render() {
     return (
-      <div>
-        {this.renderGame()}
-      </div>
+      this.renderGame()
     );
   }
 }

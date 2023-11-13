@@ -73,5 +73,36 @@ namespace SPAmineseweeper.Helper
             }
             return false;
         }
+
+        internal static void SetDifficultyParameters(Game game)
+        { 
+            int gridSize = 10;
+            int bombPercentage = 5;
+
+            switch (game.Difficulty.ToLower())
+            {
+                case "easy":
+                    gridSize = 8;
+                    bombPercentage = 10;
+                    break;
+                case "medium":
+                    gridSize = 10;
+                    bombPercentage = 15;
+                    break;
+                case "hard":
+                    gridSize = 12;
+                    bombPercentage = 20;
+                    break;
+                case "extreme":
+                    gridSize = 14;
+                    bombPercentage = 25;
+                    break;
+                default:
+                    break;
+            }
+
+            game.BoardSize = gridSize;
+            game.BombPercentage = bombPercentage;
+        }
     }
 }
