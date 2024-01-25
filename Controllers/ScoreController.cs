@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using SPAmineseweeper.Data;
 using SPAmineseweeper.Helper;
 using SPAmineseweeper.Models;
+using SPAmineseweeper.Models.ViewModels;
 using System.Security.Claims;
 
 namespace SPAmineseweeper.Controllers
@@ -27,25 +28,26 @@ namespace SPAmineseweeper.Controllers
             _hostingEnvironment = hostingEnvironment;
         }
 
-        // GET: api/gettopscores (true or false)
-        [HttpGet]
-        public IActionResult GetTopScores(bool isDaily)
+        // GET: api/gettopfivescores (true or false)
+        [HttpGet("gettopfiveoverall")]
+        public List<ScoreView> GetTopFiveScores(bool isDaily)
         {
             DateTime targetDate = isDaily ? DateTime.Now.Date : DateTime.MinValue;
 
-            var topScores = _context.ScoreModel
+            var topFiveScores = _context.ScoreModel
                 .Where(score => isDaily ? score.Date.Date == targetDate : true)
                 .OrderByDescending(g => g.HighScore)
                 .Take(5)
-                .Select(g => new
+                .Select(score => new ScoreView
                 {
-                    g.Id,
-                    g.HighScore
+                    Id = score.Id, 
+                    HighScore = score.HighScore
                 })
                 .ToList();
 
-            return Ok(topScores);
+            return topFiveScores;
         }
+
 
         // POST: api/score
         [HttpPost]
@@ -96,3 +98,27 @@ namespace SPAmineseweeper.Controllers
         }
     }
 }
+
+/*
+Gamla TopFiveScores Controller action
+
+
+[HttpGet]
+public IActionResult GetTopScores(bool isDaily)
+{
+    DateTime targetDate = isDaily ? DateTime.Now.Date : DateTime.MinValue;
+
+    var topScores = _context.ScoreModel
+        .Where(score => isDaily ? score.Date.Date == targetDate : true)
+        .OrderByDescending(g => g.HighScore)
+        .Take(5)
+        .Select(g => new
+        {
+            g.Id,
+            g.HighScore
+        })
+        .ToList();
+
+    return Ok(topScores);
+}
+*/
