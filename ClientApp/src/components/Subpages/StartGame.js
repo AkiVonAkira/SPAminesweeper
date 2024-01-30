@@ -64,9 +64,11 @@ const Tile = styled.div`
   }
 
   /* Style for mines */
-  &.mine {
-    background-color: red;
+  &.revealed.mine {
+    background: red;
+    border: .2rem #787976 solid;
   }
+
 
   /* Style for adjecent mine numbers */
   & [adjacentMines="1"] {
@@ -290,7 +292,7 @@ export class StartGame extends Component {
           {game.tiles.map((tile, index) => (
             <Tile
               key={index}
-              className={`tile ${tile.isRevealed ? "revealed" : "hidden"}`}
+              className={`tile ${tile.isRevealed ? "revealed" : "hidden"} ${tile.isMine && tile.isRevealed ? "mine" : ""}`}
             >
               {tile.isRevealed ? (
                 tile.isMine ? (
