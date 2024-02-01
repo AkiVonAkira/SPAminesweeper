@@ -1,6 +1,4 @@
-﻿using Azure.Core;
-using DataAccess;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -40,7 +38,7 @@ namespace SPAmineseweeper.Controllers
                 .Take(5)
                 .Select(score => new ScoreView
                 {
-                    Id = score.Id, 
+                    Id = score.Id,
                     HighScore = score.HighScore
                 })
                 .ToList();

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import authService from "../api-authorization/AuthorizeService";
 
-const Main = styled.div`
+const Home = styled.div`
  // Fixar styling för profilsidan senare
 
 `;
