@@ -3,9 +3,15 @@ import { Container as BootstrapContainer } from 'reactstrap';
 import { NavMenu } from './NavMenu';
 import styled from 'styled-components';
 
-const StyledContainer = styled(BootstrapContainer)`
+const MainContainer = styled(BootstrapContainer)`
   width: 100%;
+  max-width: 100%;
   min-height: 100%;
+`;
+
+const HomeContainer = styled.div`
+  min-height: 100vh;
+  background-color: var(--background);
 `;
 
 export class Layout extends Component {
@@ -13,12 +19,12 @@ export class Layout extends Component {
 
   render() {
     return (
-      <div>
+      <HomeContainer>
         <NavMenu />
-        <StyledContainer tag="main">
+        <MainContainer tag="main">
           {this.props.children}
-        </StyledContainer>
-      </div>
+        </MainContainer>
+      </HomeContainer>
     );
   }
 }

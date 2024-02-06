@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom';
 import AppRoutes from './AppRoutes';
 import AuthorizeRoute from './components/api-authorization/AuthorizeRoute';
 import { Layout } from './components/Global/Layout';
+import { RootStyles } from './components/Global/GlobalStyles';
 import './custom.css';
 
 export default class App extends Component {
@@ -11,6 +12,7 @@ export default class App extends Component {
     render() {
         return (
             <Layout>
+                <RootStyles />
                 <Routes>
                     {AppRoutes.map((route, index) => {
                         const { element, requireAuth, ...rest } = route;

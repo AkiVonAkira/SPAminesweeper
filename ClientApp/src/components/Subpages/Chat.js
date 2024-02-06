@@ -3,10 +3,12 @@ import * as signalR from "@microsoft/signalr";
 import axios from "axios";
 import styled from "styled-components";
 import authService from "../api-authorization/AuthorizeService";
+import { Button, Input } from '../Global/GlobalStyles';
 
 const ChatContainer = styled.div`
   text-align: center;
   margin: 2em;
+  min-height: 100%;
 `;
 
 const ChatHeader = styled.h1`
@@ -21,24 +23,6 @@ const Label = styled.label`
   display: block;
   margin-bottom: 0.5em;
 `;
-
-const Input = styled.input`
-  display: block;
-  width: 100%;
-  padding: 0.5em;
-  border: 0.25em #787976 solid;
-  border-radius: 0.5em;
-`;
-
-const Button = styled.button`
-  background-color: #c2c2c2;
-  padding: 0.5em 1em;
-  margin: 0;
-  border: 0.25em red solid;
-  border-radius: 0.5em;
-  height: 3em;
-`;
-
 const MessageList = styled.ul`
   list-style-type: none;
   padding: 0;
@@ -74,7 +58,7 @@ const Chathub = () => {
         newConnection.on("ReceiveMessage", (receivedUser, receivedMessage) => {
           setMessages((prevMessages) => [
             ...prevMessages,
-            `${receivedUser} says: ${receivedMessage}`,
+            `${receivedUser} says: ${receivedMessage}`
           ]);
         });
       } catch (err) {
@@ -95,10 +79,10 @@ const Chathub = () => {
     try {
       const accessToken = await authService.getAccessToken();
       const headers = {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`
       };
       const response = await axios.get("/api/user/getuser", {
-        headers: headers,
+        headers: headers
       });
       setNickName(response.data.nickName);
     } catch (error) {
@@ -117,17 +101,6 @@ const Chathub = () => {
   return (
     <ChatContainer>
       <ChatHeader>Chat</ChatHeader>
-
-      <FormGroup>
-        <Label>
-          NickName:
-          <Input
-            value={nickName}
-            onChange={(e) => setNickName(e.target.value)}
-          />
-        </Label>
-      </FormGroup>
-
       <FormGroup>
         <Label>
           Message:

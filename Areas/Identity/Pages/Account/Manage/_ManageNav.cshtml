@@ -3,9 +3,9 @@
     var hasExternalLogins = (await SignInManager.GetExternalAuthenticationSchemesAsync()).Any();
 }
 <ul class="nav nav-pills flex-column">
-    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.IndexNavClass(ViewContext)" id="profile" asp-page="./Index">Profile <span><i class="fa-solid fa-user"></i></span></a></li>
     @* <li class="nav-item"><a class="nav-link @ManageNavPages.EmailNavClass(ViewContext)" id="email" asp-page="./Email">Email</a></li> *@
-    <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Password</a></li>
+    <li class="nav-item"><a class="nav-link @ManageNavPages.ChangePasswordNavClass(ViewContext)" id="change-password" asp-page="./ChangePassword">Password <span><i class="fa-solid fa-lock"></i></span></a></li>
     @if (hasExternalLogins)
     {
         <li id="external-logins" class="nav-item"><a id="external-login" class="nav-link @ManageNavPages.ExternalLoginsNavClass(ViewContext)" asp-page="./ExternalLogins">External logins</a></li>
@@ -15,7 +15,7 @@
 
     <li class="nav-item">
         <form class="" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="/">
-            <button type="submit" class="px-3 w-100 text-md-start btn btn-danger">Logout</button>
+            <button type="submit" class="px-3 w-100 text-md-start btn btn-danger">Logout <span><i class="fa-solid fa-right-from-bracket"></i></span></button>
         </form>
     </li>
     @* <a class="nav-link text-dark" asp-area="Identity" asp-page="/Account/Login" asp-route-returnUrl="@returnUrl">Login</a> *@
