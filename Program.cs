@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 using SPAmineseweeper.Data;
+using SPAmineseweeper.Hubs;
 using SPAmineseweeper.Models;
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,6 +31,7 @@ builder.Services.AddAuthentication()
 
 
 builder.Services.AddRazorPages();
+builder.Services.AddSignalR();
 
 //builder.Services.AddAuthorization(options =>
 //{
@@ -74,6 +76,7 @@ app.MapControllerRoute(
     pattern: "{controller}/{action=Index}/{id?}");
 app.MapControllers();
 app.MapRazorPages();
+app.MapHub<ChatHub>("/chathub");
 
 app.MapFallbackToFile("index.html");
 

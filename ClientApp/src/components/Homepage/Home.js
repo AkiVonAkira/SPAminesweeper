@@ -1,5 +1,6 @@
 ﻿import React, { Component } from "react";
 import { StartGame } from "../Subpages/StartGame";
+import Chathub from "../Subpages/Chat";
 import styled from "styled-components";
 
 const GameContainer = styled.div`
@@ -122,34 +123,36 @@ export class Home extends Component {
         );
     }
 
-    render() {
-        return (
-            <GameContainer>
-                <div>
-                    {<h1>Select Difficulty:</h1>}
-                    {this.renderDifficultyList()}
-                    <span>Show Custom Settings</span>
-                    <Switch
-                        type="checkbox"
-                        checked={this.state.showCustomSettings}
-                        onChange={() =>
-                            this.setState((prevState) => ({
-                                showCustomSettings: !prevState.showCustomSettings,
-                            }))
-                        }
-                        color="primary"
-                    />
-                    <div>
-                        {this.state.showCustomSettings && this.renderCustomSettings()}
-                    </div>
-                </div>
-                <StartGame
-                    ref={(component) => (this.startGameComponent = component)}
-                    boardSize={this.state.gridSize}
-                    difficulty={this.state.difficulty}
-                    bombPercentage={this.state.bombPercentage}
-                />
-            </GameContainer>
-        );
-    }
+     render() {
+    return (
+      <GameContainer>
+        <div>
+          {<h1>Select Difficulty:</h1>}
+          {this.renderDifficultyList()}
+          <span>Show Custom Settings</span>
+          <Switch
+            type="checkbox"
+            checked={this.state.showCustomSettings}
+            onChange={() =>
+              this.setState((prevState) => ({
+                showCustomSettings: !prevState.showCustomSettings,
+              }))
+            }
+            color="primary"
+          />
+          <div>
+            {this.state.showCustomSettings && this.renderCustomSettings()}
+          </div>
+        </div>
+        <Chathub />
+        <StartGame
+          ref={(component) => (this.startGameComponent = component)}
+          boardSize={this.state.gridSize}
+          difficulty={this.state.difficulty}
+          bombPercentage={this.state.bombPercentage}
+        />
+      </GameContainer>
+    );
+  }
 }
+

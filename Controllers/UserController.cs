@@ -47,7 +47,7 @@ namespace SPAmineseweeper.Controllers
                 var userInfo = new UserView
                 {
                     UserName = user.UserName,
-                    Description = user.Description,
+                    //Description = user.Description,
                     NickName = user.Nickname,
                     Score = (int)totalScore,
                     GamesPlayed = games.Count(),
