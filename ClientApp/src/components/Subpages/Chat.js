@@ -74,7 +74,7 @@ const Chathub = () => {
         newConnection.on("ReceiveMessage", (receivedUser, receivedMessage) => {
           setMessages((prevMessages) => [
             ...prevMessages,
-            `${receivedUser} says: ${receivedMessage}`,
+            `${receivedUser} says: ${receivedMessage}`
           ]);
         });
       } catch (err) {
@@ -95,10 +95,10 @@ const Chathub = () => {
     try {
       const accessToken = await authService.getAccessToken();
       const headers = {
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: `Bearer ${accessToken}`
       };
       const response = await axios.get("/api/user/getuser", {
-        headers: headers,
+        headers: headers
       });
       setNickName(response.data.nickName);
     } catch (error) {
@@ -117,17 +117,6 @@ const Chathub = () => {
   return (
     <ChatContainer>
       <ChatHeader>Chat</ChatHeader>
-
-      <FormGroup>
-        <Label>
-          NickName:
-          <Input
-            value={nickName}
-            onChange={(e) => setNickName(e.target.value)}
-          />
-        </Label>
-      </FormGroup>
-
       <FormGroup>
         <Label>
           Message:

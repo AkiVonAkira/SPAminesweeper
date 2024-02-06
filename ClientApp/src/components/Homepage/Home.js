@@ -53,77 +53,77 @@ const DifficultyList = styled.ul`
 `;
 
 export class Home extends Component {
-    static displayName = Home.name;
+  static displayName = Home.name;
 
-    constructor(props) {
-        super(props);
-        this.state = {
-            bombPercentage: 5,
-            difficulty: "easy",
-            gridSize: 10,
-            showCustomSettings: false,
-            game: null,
-        };
-    }
-
-    handleStartGameClick = async () => {
-        this.startGameComponent.startNewGame(this.handleGameStarted);
+  constructor(props) {
+    super(props);
+    this.state = {
+      bombPercentage: 5,
+      difficulty: "easy",
+      gridSize: 10,
+      showCustomSettings: false,
+      game: null,
     };
+  }
 
-    handleGameStarted = (game) => {
-        this.setState({ game });
-    };
+  handleStartGameClick = async () => {
+    this.startGameComponent.startNewGame(this.handleGameStarted);
+  };
 
-    renderDifficultyList() {
-        return (
-            <DifficultyList
-                aria-label="difficulty"
-                value={this.state.difficulty}
-                onClick={(e) => {
-                    const difficulty = e.target.value;
-                    this.setState({
-                        difficulty
-                    });
-                }}
-            >
-                <CreateButton value="easy" onClick={this.handleStartGameClick}>Easy</CreateButton>
-                <CreateButton value="medium" onClick={this.handleStartGameClick}>Medium</CreateButton>
-                <CreateButton value="hard" onClick={this.handleStartGameClick}>Hard</CreateButton>
-                <CreateButton value="extreme" onClick={this.handleStartGameClick}>Extreme</CreateButton>
-            </DifficultyList>
-        );
-    }
+  handleGameStarted = (game) => {
+    this.setState({ game });
+  };
 
-    renderCustomSettings() {
-        return (
-            <>
-                <TextField
-                    label="Grid Size"
-                    type="number"
-                    value={this.state.gridSize}
-                    onChange={(e) => this.setState({ gridSize: e.target.value })}
-                />
-                <TextField
-                    label="Bomb Percentage"
-                    type="number"
-                    value={this.state.bombPercentage}
-                    onChange={(e) => this.setState({ bombPercentage: e.target.value })}
-                />
-                <CreateButton
-                    onClick={(e) => {
-                        this.handleStartGameClick();
-                        this.setState({
-                            difficulty: "custom",
-                        });
-                    }}
-                >
-                    Start Custom Game
-                </CreateButton>
-            </>
-        );
-    }
+  renderDifficultyList() {
+    return (
+      <DifficultyList
+        aria-label="difficulty"
+        value={this.state.difficulty}
+        onClick={(e) => {
+          const difficulty = e.target.value;
+          this.setState({
+            difficulty
+          });
+        }}
+      >
+        <CreateButton value="easy" onClick={this.handleStartGameClick}>Easy</CreateButton>
+        <CreateButton value="medium" onClick={this.handleStartGameClick}>Medium</CreateButton>
+        <CreateButton value="hard" onClick={this.handleStartGameClick}>Hard</CreateButton>
+        <CreateButton value="extreme" onClick={this.handleStartGameClick}>Extreme</CreateButton>
+      </DifficultyList>
+    );
+  }
 
-     render() {
+  renderCustomSettings() {
+    return (
+      <>
+        <TextField
+          label="Grid Size"
+          type="number"
+          value={this.state.gridSize}
+          onChange={(e) => this.setState({ gridSize: e.target.value })}
+        />
+        <TextField
+          label="Bomb Percentage"
+          type="number"
+          value={this.state.bombPercentage}
+          onChange={(e) => this.setState({ bombPercentage: e.target.value })}
+        />
+        <CreateButton
+          onClick={(e) => {
+            this.handleStartGameClick();
+            this.setState({
+              difficulty: "custom",
+            });
+          }}
+        >
+          Start Custom Game
+        </CreateButton>
+      </>
+    );
+  }
+
+  render() {
     return (
       <GameContainer>
         <div>
