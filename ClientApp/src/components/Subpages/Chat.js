@@ -23,6 +23,7 @@ const Label = styled.label`
   display: block;
   margin-bottom: 0.5em;
 `;
+
 const MessageList = styled.ul`
   list-style-type: none;
   padding: 0;
@@ -33,98 +34,105 @@ const MessageItem = styled.li`
 `;
 
 const Chathub = () => {
-  const [nickName, setNickName] = useState("");
-  const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [isConnected, setIsHubConnected] = useState(null);
+    const [nickName, setNickName] = useState('');
+    const [message, setMessage] = useState('');
+    const [messages, setMessages] = useState([]);
+    const [isConnected, setIsHubConnected] = useState(false);
 
-  const hubConnection = useRef(null);
+    const hubConnection = useRef(false);
 
-  useEffect(() => {
-    fetchNickName();
-    const startHubConnection = async () => {
-      const newConnection = new signalR.HubConnectionBuilder()
-        .withUrl("/chatHub")
-        .build();
-
-      hubConnection.current = newConnection;
-      setIsHubConnected(true);
-
-      try {
-        await newConnection.start();
-        console.log("SignalR Connected");
-        setIsHubConnected(true);
-
-        newConnection.on("ReceiveMessage", (receivedUser, receivedMessage) => {
-          setMessages((prevMessages) => [
-            ...prevMessages,
-            `${receivedUser} says: ${receivedMessage}`
-          ]);
-        });
-      } catch (err) {
-        console.error(err);
-      }
-
-      return () => {
-        if (newConnection) {
-          newConnection.stop();
+    const fetchNickName = async () => {
+        try {
+            const accessToken = await authService.getAccessToken();
+            const headers = {
+                Authorization: `Bearer ${accessToken}`,
+            };
+            const response = await axios.get("/api/user/getuser", {
+                headers: headers,
+            });
+            setNickName(response.data.nickName);
+        } catch (error) {
+            console.error("Error fetching user:", error);
         }
-      };
     };
 
-    startHubConnection();
-  }, []);
+    useEffect(() => {
+        fetchNickName();
 
-  const fetchNickName = async () => {
-    try {
-      const accessToken = await authService.getAccessToken();
-      const headers = {
-        Authorization: `Bearer ${accessToken}`
-      };
-      const response = await axios.get("/api/user/getuser", {
-        headers: headers
-      });
-      setNickName(response.data.nickName);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-    }
-  };
+        const storedGlobalChatHistory = JSON.parse(localStorage.getItem('globalChatHistory')) || [];
+        setMessages(storedGlobalChatHistory);
 
-  const send = async () => {
-    if (hubConnection.current) {
-      await hubConnection.current
-        .invoke("SendMessage", nickName, message)
-        .catch((err) => console.error(err));
-    }
-  };
+        const startHubConnection = async () => {
+            const newConnection = new signalR.HubConnectionBuilder()
+                .withUrl("/chathub")
+                .build();
 
-  return (
-    <ChatContainer>
-      <ChatHeader>Chat</ChatHeader>
-      <FormGroup>
-        <Label>
-          Message:
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            size="50"
-          />
-        </Label>
-      </FormGroup>
+            hubConnection.current = newConnection;
+            setIsHubConnected(true);
 
-      <Button onClick={send} disabled={!isConnected}>
-        Send
-      </Button>
+            try {
+                await newConnection.start();
+                console.log("SignalR Connected");
+                setIsHubConnected(true);
 
-      <hr />
+                newConnection.on("ReceiveMessage", (receivedUser, receivedMessage) => {
+                    console.log("Received user:", receivedUser);
+                    const now = new Date();
+                    const formattedTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+                    const newMessage = `${receivedUser} says: ${receivedMessage} Timestamp: ${formattedTime}`;
+                    setMessages(prevMessages => [...prevMessages, newMessage]);
+                    localStorage.setItem('globalChatHistory', JSON.stringify([...messages, newMessage]));
+                });
+            } catch (err) {
+                console.error(err);
+            }
 
-      <MessageList>
-        {messages.map((msg, index) => (
-          <MessageItem key={index}>{msg}</MessageItem>
-        ))}
-      </MessageList>
-    </ChatContainer>
-  );
+            return () => {
+                if (newConnection) {
+                    newConnection.stop();
+                }
+            };
+        };
+
+        startHubConnection();
+    }, []);
+
+    const send = () => {
+        if (hubConnection.current) {
+            hubConnection.current
+                .invoke("SendMessage", nickName, message)
+                .catch((err) => console.error(err));
+        }
+    };
+
+    return (
+        <ChatContainer>
+            <ChatHeader>Global Chat</ChatHeader>
+
+            <FormGroup>
+                <Label>
+                    Message:
+                    <Input
+                        value={message}
+                        onChange={(e) => setMessage(e.target.value)}
+                        size="50"
+                    />
+                </Label>
+            </FormGroup>
+
+            <Button onClick={send} disabled={!isConnected}>
+                Send
+            </Button>
+
+            <hr />
+
+            <MessageList>
+                {messages.map((msg, index) => (
+                    <MessageItem key={index}>{msg}</MessageItem>
+                ))}
+            </MessageList>
+        </ChatContainer >
+    );
 };
 
 export default Chathub;
