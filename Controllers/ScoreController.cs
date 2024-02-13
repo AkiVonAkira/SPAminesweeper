@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using SPAmineseweeper.Data;
 using SPAmineseweeper.Helper;
 using SPAmineseweeper.Models;
@@ -67,15 +66,8 @@ namespace SPAmineseweeper.Controllers
             {
                 return NotFound("Player not found");
             }
-            var highScore = ScoreHelper.CalculateScore(game);
 
-            var newScore = new Score
-            {
-                HighScore = highScore,
-                UserId = userId,
-                User = user,
-                Date = DateTime.Now
-            };
+            var newScore = ScoreHelper.CalculateScore(game);
 
             _context.ScoreModel.Add(newScore);
             _context.SaveChanges();

@@ -34,105 +34,108 @@ const MessageItem = styled.li`
 `;
 
 const Chathub = () => {
-    const [nickName, setNickName] = useState('');
-    const [message, setMessage] = useState('');
-    const [messages, setMessages] = useState([]);
-    const [isConnected, setIsHubConnected] = useState(false);
+  const [nickName, setNickname] = useState('');
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [isConnected, setIsHubConnected] = useState(false);
 
-    const hubConnection = useRef(false);
+  const hubConnection = useRef(null);
 
-    const fetchNickName = async () => {
-        try {
-            const accessToken = await authService.getAccessToken();
-            const headers = {
-                Authorization: `Bearer ${accessToken}`,
-            };
-            const response = await axios.get("/api/user/getuser", {
-                headers: headers,
-            });
-            setNickName(response.data.nickName);
-        } catch (error) {
-            console.error("Error fetching user:", error);
+  const fetchNickName = async () => {
+    try {
+      const accessToken = await authService.getAccessToken();
+      const headers = {
+        Authorization: `Bearer ${accessToken}`,
+      };
+      const response = await axios.get("/api/user/getuser", {
+        headers: headers,
+      });
+      setNickname(response.data.nickname);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchNickName();
+
+    const storedGlobalChatHistory = JSON.parse(localStorage.getItem('globalChatHistory')) || [];
+    setMessages(storedGlobalChatHistory);
+
+    const startHubConnection = async () => {
+      const newConnection = new signalR.HubConnectionBuilder()
+        .withUrl("/chathub")
+        .build();
+
+      hubConnection.current = newConnection;
+      setIsHubConnected(true);
+
+      try {
+        await newConnection.start();
+        console.log("SignalR Connected");
+        setIsHubConnected(true);
+
+        newConnection.on("ReceiveMessage", (receivedUser, receivedMessage) => {
+          console.log("Received user:", receivedUser);
+          const now = new Date();
+          const formattedTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+          const newMessage = `${receivedUser} says: ${receivedMessage} Timestamp: ${formattedTime}`;
+          setMessages(prevMessages => {
+            const updatedMessages = [...prevMessages, newMessage];
+            localStorage.setItem('globalChatHistory', JSON.stringify(updatedMessages));
+            return updatedMessages;
+          });
+        });
+      } catch (err) {
+        console.error(err);
+      }
+
+      return () => {
+        if (newConnection) {
+          newConnection.stop();
         }
+      };
     };
 
-    useEffect(() => {
-        fetchNickName();
+    startHubConnection();
+  }, []);
 
-        const storedGlobalChatHistory = JSON.parse(localStorage.getItem('globalChatHistory')) || [];
-        setMessages(storedGlobalChatHistory);
+  const send = () => {
+    if (hubConnection.current) {
+      hubConnection.current
+        .invoke("SendMessage", nickName, message)
+        .catch((err) => console.error(err));
+    }
+  };
 
-        const startHubConnection = async () => {
-            const newConnection = new signalR.HubConnectionBuilder()
-                .withUrl("/chathub")
-                .build();
+  return (
+    <ChatContainer>
+      <ChatHeader>Global Chat</ChatHeader>
 
-            hubConnection.current = newConnection;
-            setIsHubConnected(true);
+      <FormGroup>
+        <Label>
+          Message:
+          <Input
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            size="50"
+          />
+        </Label>
+      </FormGroup>
 
-            try {
-                await newConnection.start();
-                console.log("SignalR Connected");
-                setIsHubConnected(true);
+      <Button onClick={send} disabled={!isConnected}>
+        Send
+      </Button>
 
-                newConnection.on("ReceiveMessage", (receivedUser, receivedMessage) => {
-                    console.log("Received user:", receivedUser);
-                    const now = new Date();
-                    const formattedTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-                    const newMessage = `${receivedUser} says: ${receivedMessage} Timestamp: ${formattedTime}`;
-                    setMessages(prevMessages => [...prevMessages, newMessage]);
-                    localStorage.setItem('globalChatHistory', JSON.stringify([...messages, newMessage]));
-                });
-            } catch (err) {
-                console.error(err);
-            }
+      <hr />
 
-            return () => {
-                if (newConnection) {
-                    newConnection.stop();
-                }
-            };
-        };
-
-        startHubConnection();
-    }, []);
-
-    const send = () => {
-        if (hubConnection.current) {
-            hubConnection.current
-                .invoke("SendMessage", nickName, message)
-                .catch((err) => console.error(err));
-        }
-    };
-
-    return (
-        <ChatContainer>
-            <ChatHeader>Global Chat</ChatHeader>
-
-            <FormGroup>
-                <Label>
-                    Message:
-                    <Input
-                        value={message}
-                        onChange={(e) => setMessage(e.target.value)}
-                        size="50"
-                    />
-                </Label>
-            </FormGroup>
-
-            <Button onClick={send} disabled={!isConnected}>
-                Send
-            </Button>
-
-            <hr />
-
-            <MessageList>
-                {messages.map((msg, index) => (
-                    <MessageItem key={index}>{msg}</MessageItem>
-                ))}
-            </MessageList>
-        </ChatContainer >
-    );
+      <MessageList>
+        {messages.map((msg, index) => (
+          <MessageItem key={index}>{msg}</MessageItem>
+        ))}
+      </MessageList>
+    </ChatContainer >
+  );
 };
 
 export default Chathub;

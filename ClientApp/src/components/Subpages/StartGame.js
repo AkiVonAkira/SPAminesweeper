@@ -282,7 +282,7 @@ export class StartGame extends Component {
           {game.gameStarted && (
             <TimeDisplay>{this.state.gameDuration}</TimeDisplay>
           )}
-          <TimeDisplay>500p</TimeDisplay>
+          <TimeDisplay>{game.score}</TimeDisplay>
         </InfoContainer>
         <Board style={{ "--size": boardSize }}>
           {game.tiles.map((tile, index) => (

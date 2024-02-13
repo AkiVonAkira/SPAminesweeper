@@ -13,7 +13,6 @@ namespace SPAmineseweeper.Helper
             gameView.GameStarted = game.GameStarted;
             gameView.GameEnded = game.GameEnded;
             gameView.GameWon = game.GameWon;
-            gameView.Score = game.Score;
             gameView.BoardSize = game.BoardSize;
             gameView.BombPercentage = game.BombPercentage;
             gameView.Difficulty = game.Difficulty;
@@ -24,6 +23,9 @@ namespace SPAmineseweeper.Helper
                 _tiles.Add(TileConverter.ConvertTiles(t));
             }
             gameView.Tiles = _tiles;
+
+            var _score = new ScoreView();
+            gameView.Score = _score;
 
             return gameView;
         }
