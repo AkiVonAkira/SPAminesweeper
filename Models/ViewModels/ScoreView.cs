@@ -2,9 +2,9 @@
 {
     public class ScoreView
     {
-        public int Id { get; internal set; }
+        public int Id { get; set; }
         public double HighScore { get; set; }
-        public string? UserId { get; internal set; }
+        public string? UserId { get; set; }
         public DateTime Date { get; set; }
     }
 }

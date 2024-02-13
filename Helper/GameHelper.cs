@@ -67,8 +67,6 @@ namespace SPAmineseweeper.Helper
                 return true;
             }
 
-            game.Score = ScoreHelper.CalculateScore(game);
-
             return false;
         }
 

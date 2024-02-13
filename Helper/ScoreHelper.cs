@@ -4,23 +4,20 @@ namespace SPAmineseweeper.Helper
 {
     public class ScoreHelper
     {
-        public static Score CalculateScore(Game game)
+        public static void CalculateScore(Game game)
         {
-            Score score = game.Score;
-            score.UserId = game.UserId;
-            score.User = game.User;
-            score.Date = DateTime.Now;
-
             double baseScore = 10000; // Base score value
             double timeFactor = 0.5; // Score reduction factor per second
             double revealedTileFactor = 100; // Score addition per revealed tile
             double bombPenalty = 5000; // Score penalty per bomb
 
-            DateTime endTime = game.GameEnded ?? DateTime.Now; // Use current time if GameEnded is null
-            DateTime startTime = (DateTime)game.GameStarted;
+            DateTime endTime = game.GameEnded ?? DateTime.UtcNow; // Use current time if GameEnded is null
+            DateTime startTime = game.GameStarted ?? DateTime.UtcNow; // Use current time if GameStarted is null
 
             // Calculate the time spent in seconds
             double timeElapsedSeconds = (endTime - startTime).TotalSeconds;
+            // Ensure timeElapsedSeconds is non-negative
+            timeElapsedSeconds = Math.Max(timeElapsedSeconds, 0);
 
             // Calculate the score based on time
             double timeScoreReduction = timeFactor * timeElapsedSeconds;
@@ -37,8 +34,18 @@ namespace SPAmineseweeper.Helper
             double finalScore = baseScore + revealedTileScore - timeScoreReduction - bombPenaltyScore;
 
             // Ensure the final score is non-negative
-            game.Score.HighScore = Math.Max(finalScore, 0);
-            return game.Score;
+            double finalScoreNonNegative = Math.Max(finalScore, 0);
+
+            // Update the existing Score object attached to the Game object
+            if (game.Score == null)
+            {
+                game.Score = new Score();
+            }
+
+            game.Score.HighScore = finalScoreNonNegative;
+            game.Score.UserId = game.UserId;
+            game.Score.User = game.User;
+            game.Score.Date = DateTime.Now;
         }
     }
 }
