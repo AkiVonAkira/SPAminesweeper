@@ -4,7 +4,7 @@ namespace SPAmineseweeper.Helper
 {
     public class ScoreHelper
     {
-        public static void CalculateScore(Game game)
+        public static double CalculateScore(Game game)
         {
             double baseScore = 10000; // Base score value
             double timeFactor = 0.5; // Score reduction factor per second
@@ -34,18 +34,7 @@ namespace SPAmineseweeper.Helper
             double finalScore = baseScore + revealedTileScore - timeScoreReduction - bombPenaltyScore;
 
             // Ensure the final score is non-negative
-            double finalScoreNonNegative = Math.Max(finalScore, 0);
-
-            // Update the existing Score object attached to the Game object
-            if (game.Score == null)
-            {
-                game.Score = new Score();
-            }
-
-            game.Score.HighScore = finalScoreNonNegative;
-            game.Score.UserId = game.UserId;
-            game.Score.User = game.User;
-            game.Score.Date = DateTime.Now;
+            return Math.Max(finalScore, 0);
         }
     }
 }

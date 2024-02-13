@@ -61,11 +61,35 @@ namespace SPAmineseweeper.Controllers
                 return NotFound("Game not found");
             }
 
-            ScoreHelper.CalculateScore(game);
+            double scoreValue = ScoreHelper.CalculateScore(game);
+
+            if (game.Score == null)
+            {
+                var score = new Score
+                {
+                    Game = game,
+                    HighScore = scoreValue,
+                    Date = DateTime.Now
+                };
+                game.Score = score;
+                _context.ScoreModel.Add(score);
+            }
+            else
+            {
+                game.Score.Game = game;
+                game.Score.HighScore = scoreValue;
+                game.Score.Date = DateTime.Now;
+                _context.ScoreModel.Update(game.Score);
+            }
 
             _context.SaveChanges();
 
-            return Ok(GameConverter.ConvertGame(game));
+            var updatedGame = _context.GameModel
+                .Include(g => g.Tiles)
+                .Include(g => g.Score)
+                .FirstOrDefault(g => g.Id == request.GameId);
+
+            return Ok(GameConverter.ConvertGame(updatedGame));
         }
 
         [HttpGet("{id}")]

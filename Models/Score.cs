@@ -7,12 +7,11 @@ namespace SPAmineseweeper.Models
     {
         [Key]
         public int Id { get; set; }
+        [ForeignKey("Game")]
+        public int GameId { get; set; }
         [Required]
         public double HighScore { get; set; }
-
-        [ForeignKey("User")]
-        public string? UserId { get; set; }
-        public virtual ApplicationUser? User { get; set; }
         public DateTime Date { get; set; }
+        public virtual Game? Game { get; set; }
     }
 }

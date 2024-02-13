@@ -11,7 +11,6 @@ namespace SPAmineseweeper.Helper
 
             scoreView.Id = score.Id;
             scoreView.HighScore = score.HighScore;
-            scoreView.UserId = score.UserId;
             scoreView.Date = score.Date;
 
             return scoreView;

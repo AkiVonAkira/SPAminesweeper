@@ -55,8 +55,6 @@ namespace SPAmineseweeper.Controllers
             tileAction(clickedTile, game);
 
             bool isGameOver = GameHelper.CheckGameOver(game);
-            ScoreHelper.CalculateScore(game);
-            _context.ScoreModel.Add(game.Score);
 
             _context.SaveChanges();
 

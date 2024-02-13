@@ -229,40 +229,40 @@ export class StartGame extends Component {
       } catch (error) {
         console.error("Error revealing tile", error);
       } finally {
-        // this.updateScore(gameId)
+        this.updateScore(gameId)
         this.setState({ loading: false, authorized: true });
       }
     }
   }
 
 
-  // async updateScore(gameId) {
-  //   const token = await authService.getAccessToken();
-  //   const config = {
-  //     method: "post",
-  //     url: "/api/score/addscore",
-  //     headers: {
-  //       "Content-Type": "application/json",
-  //       Authorization: token ? `Bearer ${token}` : ""
-  //     },
-  //     data: {
-  //       GameId: gameId,
-  //     }
-  //   };
+  async updateScore(gameId) {
+    const token = await authService.getAccessToken();
+    const config = {
+      method: "post",
+      url: "/api/score/addscore",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : ""
+      },
+      data: {
+        GameId: gameId,
+      }
+    };
 
-  //   try {
-  //     const response = await axios(config);
-  //     if (response.status >= 200 && response.status < 300) {
-  //       this.setState({ game: response.data, loading: false, authorized: true });
-  //     } else {
-  //       console.error("Failed to update score", response);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error updating score", error);
-  //   } finally {
-  //     this.setState({ loading: false });
-  //   }
-  // }
+    try {
+      const response = await axios(config);
+      if (response.status >= 200 && response.status < 300) {
+        this.setState({ game: response.data, loading: false, authorized: true });
+      } else {
+        console.error("Failed to update score", response);
+      }
+    } catch (error) {
+      console.error("Error updating score", error);
+    } finally {
+      this.setState({ loading: false });
+    }
+  }
 
   async handleFlagTile(tile, gameId, event) {
     event.preventDefault();

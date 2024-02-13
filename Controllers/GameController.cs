@@ -93,10 +93,14 @@ namespace SPAmineseweeper.Controllers
             var game = new Game
             {
                 GameStarted = DateTime.Now,
+                Score = new Score(),
                 Difficulty = request.Difficulty,
                 Tiles = new List<Tile>(),
                 UserId = userId
             };
+
+            var score = game.Score;
+            _context.ScoreModel.Add(score);
 
             GameHelper.SetDifficultyParameters(game, request);
 
