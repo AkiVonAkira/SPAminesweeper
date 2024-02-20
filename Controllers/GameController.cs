@@ -63,23 +63,23 @@ namespace SPAmineseweeper.Controllers
             return CreatedAtAction(nameof(GetGame), new { id = game.Id }, gameView);
         }
 
-        [HttpPut("{id}/endgame")]
-        public IActionResult EndGame(int id)
-        {
-            var game = _context.GameModel.Include(g => g.Tiles).FirstOrDefault(g => g.Id == id);
-            if (game == null)
-            {
-                return NotFound("Game not found");
-            }
+        //[HttpPut("{id}/endgame")]
+        //public IActionResult EndGame(int id)
+        //{
+        //    var game = _context.GameModel.Include(g => g.Tiles).FirstOrDefault(g => g.Id == id);
+        //    if (game == null)
+        //    {
+        //        return NotFound("Game not found");
+        //    }
 
-            bool isGameOver = GameHelper.CheckGameOver(game);
+        //    bool isGameOver = GameHelper.CheckGameOver(game);
 
-            game.Score = ScoreHelper.CalculateScore(game);
+        //    game.Score = ScoreHelper.CalculateScore(game);
 
-            _context.SaveChanges();
+        //    _context.SaveChanges();
 
-            return Ok(GameConverter.ConvertGame(game));
-        }
+        //    return Ok(GameConverter.ConvertGame(game));
+        //}
 
         private Game CheckExistingGame(string userId)
         {
@@ -93,11 +93,14 @@ namespace SPAmineseweeper.Controllers
             var game = new Game
             {
                 GameStarted = DateTime.Now,
-                Score = request.Score,
+                Score = new Score(),
                 Difficulty = request.Difficulty,
                 Tiles = new List<Tile>(),
                 UserId = userId
             };
+
+            var score = game.Score;
+            _context.ScoreModel.Add(score);
 
             GameHelper.SetDifficultyParameters(game, request);
 

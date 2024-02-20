@@ -6,7 +6,7 @@ using SPAmineseweeper.Data;
 using SPAmineseweeper.Helper;
 using SPAmineseweeper.Models;
 using SPAmineseweeper.Models.ViewModels;
-using System.Security.Claims;
+using SPAmineseweeper.Models.ViewModels.Requests;
 
 namespace SPAmineseweeper.Controllers
 {
@@ -47,40 +47,49 @@ namespace SPAmineseweeper.Controllers
         }
 
 
-        // POST: api/score
-        [HttpPost]
-        public IActionResult AddScore(int playerId, int gameId)
+        // POST: api/score/addscore
+        [HttpPost("addscore")]
+        public IActionResult AddScore([FromBody] ScoreRequest request)
         {
             var game = _context.GameModel
-                .FirstOrDefault(g => g.Id == gameId);
+                .Include(g => g.Tiles)
+                .Include(g => g.Score)
+                .FirstOrDefault(g => g.Id == request.GameId);
 
             if (game == null)
             {
                 return NotFound("Game not found");
             }
 
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var user = _userManager.Users.FirstOrDefault(x => x.Id == userId);
-            var score = _context.ScoreModel;
+            double scoreValue = ScoreHelper.CalculateScore(game);
 
-            if (user == null)
+            if (game.Score == null)
             {
-                return NotFound("Player not found");
+                var score = new Score
+                {
+                    Game = game,
+                    HighScore = scoreValue,
+                    Date = DateTime.Now
+                };
+                game.Score = score;
+                _context.ScoreModel.Add(score);
             }
-            var highScore = ScoreHelper.CalculateScore(game);
-
-            var newScore = new Score
+            else
             {
-                HighScore = highScore,
-                UserId = userId,
-                User = user,
-                Date = DateTime.Now
-            };
+                game.Score.Game = game;
+                game.Score.HighScore = scoreValue;
+                game.Score.Date = DateTime.Now;
+                _context.ScoreModel.Update(game.Score);
+            }
 
-            _context.ScoreModel.Add(newScore);
             _context.SaveChanges();
 
-            return CreatedAtAction(nameof(GetScore), new { id = newScore.Id }, newScore);
+            var updatedGame = _context.GameModel
+                .Include(g => g.Tiles)
+                .Include(g => g.Score)
+                .FirstOrDefault(g => g.Id == request.GameId);
+
+            return Ok(GameConverter.ConvertGame(updatedGame));
         }
 
         [HttpGet("{id}")]

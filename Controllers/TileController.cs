@@ -1,12 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SPAmineseweeper.Helper;
-using SPAmineseweeper.Models.ViewModels.Requests;
-using SPAmineseweeper.Models;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using SPAmineseweeper.Data;
-using Microsoft.AspNetCore.Authorization;
-using SPAmineseweeper.Data.Migrations;
+using SPAmineseweeper.Helper;
+using SPAmineseweeper.Models;
+using SPAmineseweeper.Models.ViewModels.Requests;
 
 namespace SPAmineseweeper.Controllers
 {
@@ -31,6 +30,7 @@ namespace SPAmineseweeper.Controllers
         {
             var game = _context.GameModel
                 .Include(g => g.Tiles)
+                .Include(g => g.Score)
                 .FirstOrDefault(g => g.Id == request.GameId);
 
             if (game == null)
@@ -60,6 +60,7 @@ namespace SPAmineseweeper.Controllers
 
             var updatedGame = _context.GameModel
                 .Include(g => g.Tiles)
+                .Include(g => g.Score)
                 .FirstOrDefault(g => g.Id == request.GameId);
 
             if (isGameOver)

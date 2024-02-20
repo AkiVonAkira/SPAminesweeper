@@ -118,7 +118,7 @@ export class StartGame extends Component {
 
   constructor(props) {
     super(props);
-    this.state = { game: null, loading: false };
+    this.state = { game: null, loading: false, authorized: false };
   }
 
   async componentDidMount() {
@@ -176,17 +176,21 @@ export class StartGame extends Component {
     try {
       const response = await axios(config);
       if (response.status >= 200 && response.status < 300) {
-        this.setState({ game: response.data, loading: false });
+        this.setState({ game: response.data, loading: false, authorized: true });
         if (onGameStarted) {
           onGameStarted(response.data);
         }
-      } else {
+      }
+      else if (response.status > 400 && response.status < 500) {
+        this.setState({ loading: true });
+      }
+      else {
         console.error("Failed to start a new game", response);
       }
     } catch (error) {
       console.error("Error starting a new game", error);
     } finally {
-      this.setState({ loading: false });
+      this.setState({ loading: false, authorized: true });
     }
   }
 
@@ -213,15 +217,50 @@ export class StartGame extends Component {
       try {
         const response = await axios(config);
         if (response.status >= 200 && response.status < 300) {
-          this.setState({ game: response.data, loading: false });
-        } else {
+          this.setState({ game: response.data, loading: false, authorized: true });
+        }
+        else if (response.status > 400 && response.status < 500) {
+          this.setState({ loading: true });
+        }
+        else {
           console.error("Failed to reveal tile", response);
         }
+
       } catch (error) {
         console.error("Error revealing tile", error);
       } finally {
-        this.setState({ loading: false });
+        this.updateScore(gameId)
+        this.setState({ loading: false, authorized: true });
       }
+    }
+  }
+
+
+  async updateScore(gameId) {
+    const token = await authService.getAccessToken();
+    const config = {
+      method: "post",
+      url: "/api/score/addscore",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: token ? `Bearer ${token}` : ""
+      },
+      data: {
+        GameId: gameId,
+      }
+    };
+
+    try {
+      const response = await axios(config);
+      if (response.status >= 200 && response.status < 300) {
+        this.setState({ game: response.data, loading: false, authorized: true });
+      } else {
+        console.error("Failed to update score", response);
+      }
+    } catch (error) {
+      console.error("Error updating score", error);
+    } finally {
+      this.setState({ loading: false });
     }
   }
 
@@ -266,6 +305,10 @@ export class StartGame extends Component {
     if (!game) {
       return <p>Loading...</p>;
     }
+    if (game.authorized) {
+      return <h1>Please Sign out and Sign back in.</h1>
+    }
+
 
     const boardSize = game.boardSize;
     const isGameEnded = game.gameEnded !== null;
@@ -282,7 +325,7 @@ export class StartGame extends Component {
           {game.gameStarted && (
             <TimeDisplay>{this.state.gameDuration}</TimeDisplay>
           )}
-          <TimeDisplay>500p</TimeDisplay>
+          <TimeDisplay>{game.score.highScore}</TimeDisplay>
         </InfoContainer>
         <Board style={{ "--size": boardSize }}>
           {game.tiles.map((tile, index) => (

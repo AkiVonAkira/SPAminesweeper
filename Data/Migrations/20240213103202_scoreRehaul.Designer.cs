@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SPAmineseweeper.Data;
 
@@ -11,9 +12,11 @@ using SPAmineseweeper.Data;
 namespace SPAmineseweeper.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240213103202_scoreRehaul")]
+    partial class scoreRehaul
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -397,10 +400,15 @@ namespace SPAmineseweeper.Data.Migrations
                     b.Property<bool>("GameWon")
                         .HasColumnType("bit");
 
+                    b.Property<int?>("ScoreId")
+                        .HasColumnType("int");
+
                     b.Property<string>("UserId")
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("ScoreId");
 
                     b.HasIndex("UserId");
 
@@ -415,24 +423,18 @@ namespace SPAmineseweeper.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("ApplicationUserId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("GameId")
-                        .HasColumnType("int");
 
                     b.Property<double>("HighScore")
                         .HasColumnType("float");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("ApplicationUserId");
-
-                    b.HasIndex("GameId")
-                        .IsUnique();
+                    b.HasIndex("UserId");
 
                     b.ToTable("ScoreModel");
                 });
@@ -526,26 +528,26 @@ namespace SPAmineseweeper.Data.Migrations
 
             modelBuilder.Entity("SPAmineseweeper.Models.Game", b =>
                 {
+                    b.HasOne("SPAmineseweeper.Models.Score", "Score")
+                        .WithMany()
+                        .HasForeignKey("ScoreId");
+
                     b.HasOne("SPAmineseweeper.Models.ApplicationUser", "User")
                         .WithMany("Games")
                         .HasForeignKey("UserId");
+
+                    b.Navigation("Score");
 
                     b.Navigation("User");
                 });
 
             modelBuilder.Entity("SPAmineseweeper.Models.Score", b =>
                 {
-                    b.HasOne("SPAmineseweeper.Models.ApplicationUser", null)
+                    b.HasOne("SPAmineseweeper.Models.ApplicationUser", "User")
                         .WithMany("Scores")
-                        .HasForeignKey("ApplicationUserId");
+                        .HasForeignKey("UserId");
 
-                    b.HasOne("SPAmineseweeper.Models.Game", "Game")
-                        .WithOne("Score")
-                        .HasForeignKey("SPAmineseweeper.Models.Score", "GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Game");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("SPAmineseweeper.Models.Tile", b =>
@@ -568,8 +570,6 @@ namespace SPAmineseweeper.Data.Migrations
 
             modelBuilder.Entity("SPAmineseweeper.Models.Game", b =>
                 {
-                    b.Navigation("Score");
-
                     b.Navigation("Tiles");
                 });
 #pragma warning restore 612, 618

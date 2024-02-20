@@ -36,7 +36,14 @@ namespace SPAmineseweeper.Controllers
 
                 foreach (var game in games)
                 {
-                    totalScore += game.Score;
+                    if (game.Score == null)
+                    {
+                        totalScore = 0;
+                    }
+                    else
+                    {
+                        totalScore += game.Score.HighScore;
+                    }
                 }
 
                 if (user == null)

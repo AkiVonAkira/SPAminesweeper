@@ -1,9 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc.Controllers;
-using Microsoft.EntityFrameworkCore;
-using SPAmineseweeper.Controllers;
-using SPAmineseweeper.Data;
-using SPAmineseweeper.Models;
+﻿using SPAmineseweeper.Models;
 using SPAmineseweeper.Models.ViewModels.Requests;
 
 namespace SPAmineseweeper.Helper
@@ -71,11 +66,12 @@ namespace SPAmineseweeper.Helper
                 game.GameWon = false;
                 return true;
             }
+
             return false;
         }
 
         internal static void SetDifficultyParameters(Game game, CreateGameRequest request)
-        { 
+        {
             int gridSize = 10;
             int bombPercentage = 5;
 
