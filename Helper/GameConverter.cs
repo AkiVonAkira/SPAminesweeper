@@ -26,7 +26,9 @@ namespace SPAmineseweeper.Helper
 
             var _score = new ScoreView();
             gameView.Score = _score;
-
+            _score.Id = game.Score.Id;
+            _score.HighScore = game.Score.HighScore;
+            _score.Date = game.Score.Date;
             return gameView;
         }
     }
