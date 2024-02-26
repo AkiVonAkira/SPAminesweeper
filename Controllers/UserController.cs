@@ -36,11 +36,7 @@ namespace SPAmineseweeper.Controllers
 
                 foreach (var game in games)
                 {
-                    if (game.Score == null)
-                    {
-                        totalScore = 0;
-                    }
-                    else
+                    if (game.Score != null)
                     {
                         totalScore += game.Score.HighScore;
                     }
@@ -66,6 +62,7 @@ namespace SPAmineseweeper.Controllers
                 throw new Exception("Error", ex);
             }
         }
+
 
         [HttpGet("userloggedin")]
         public bool CheckLoggedIn()
