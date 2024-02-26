@@ -9,7 +9,7 @@ namespace SPAmineseweeper.Helper
             double baseScore = 10000; // Base score value
             double timeFactor = 0.5; // Score reduction factor per second
             double revealedTileFactor = 100; // Score addition per revealed tile
-            double bombPenalty = 500; // Score penalty per bomb
+            int bombPenalty = 500; // Score penalty per bomb
 
             DateTime endTime = game.GameEnded ?? DateTime.UtcNow; // Use current time if GameEnded is null
             DateTime startTime = game.GameStarted ?? DateTime.UtcNow; // Use current time if GameStarted is null

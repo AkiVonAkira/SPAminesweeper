@@ -1,8 +1,11 @@
 ﻿import React, { Component } from "react";
 import { StartGame } from "../Subpages/StartGame";
 import Chathub from "../Subpages/Chat";
+import Profile from "../Subpages/Profile";
+import Leaderboard from "../Subpages/LeaderBoard";
 import styled from "styled-components";
-import { Button, Input } from '../Global/GlobalStyles';
+import { Button, Input } from "../Global/GlobalStyles";
+import axios from "axios";
 
 const BoxContainer = styled.div`
   display: flex;
@@ -46,7 +49,7 @@ const DifficultyGrid = styled.div`
   padding: 0.5em 1em;
   flex-wrap: wrap;
   gap: 0.5em;
-`
+`;
 
 const CustomContainer = styled.div`
   display: flex;
@@ -58,7 +61,7 @@ const CustomContainer = styled.div`
   & [Input] {
     max-width: 50%;
   }
-`
+`;
 
 export class Home extends Component {
   static displayName = Home.name;
@@ -70,7 +73,7 @@ export class Home extends Component {
       difficulty: "easy",
       gridSize: null,
       showCustomSettings: false,
-      game: null
+      game: null,
     };
   }
 
@@ -90,7 +93,7 @@ export class Home extends Component {
         onClick={(e) => {
           const difficulty = e.target.value;
           this.setState({
-            difficulty
+            difficulty,
           });
         }}
       >
@@ -131,7 +134,7 @@ export class Home extends Component {
           onClick={(e) => {
             this.handleStartGameClick();
             this.setState({
-              difficulty: "custom"
+              difficulty: "custom",
             });
           }}
         >
@@ -148,10 +151,14 @@ export class Home extends Component {
           <Chathub />
         </BoxContainer>
         <BoxContainer>
+          <Leaderboard />
+          <Profile />
+        </BoxContainer>
+        <BoxContainer>
           <StartGame
             ref={(component) => (this.startGameComponent = component)}
             boardSize={this.state.gridSize || 10}
-            difficulty={this.state.difficulty || 'easy'}
+            difficulty={this.state.difficulty || "easy"}
             bombPercentage={this.state.bombPercentage || 5}
           />
         </BoxContainer>
@@ -165,7 +172,7 @@ export class Home extends Component {
                 checked={this.state.showCustomSettings}
                 onChange={() =>
                   this.setState((prevState) => ({
-                    showCustomSettings: !prevState.showCustomSettings
+                    showCustomSettings: !prevState.showCustomSettings,
                   }))
                 }
                 color="primary"
