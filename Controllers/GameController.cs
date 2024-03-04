@@ -46,13 +46,13 @@ namespace SPAmineseweeper.Controllers
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // Check if an existing game is in progress
-            //var existingGame = CheckExistingGame(userId);
-            //if (existingGame != null)
-            //{
-            //    _context.SaveChanges();
-            //    return Ok(GameConverter.ConvertGame(existingGame));
-            //}
+           // Check if an existing game is in progress
+           var existingGame = CheckExistingGame(userId);
+            if (existingGame != null && existingGame.Difficulty == request.Difficulty)
+            {
+                _context.SaveChanges();
+                return Ok(GameConverter.ConvertGame(existingGame));
+            }
 
             // Create a new game
             var game = CreateNewGame(request, userId);
@@ -84,15 +84,15 @@ namespace SPAmineseweeper.Controllers
         private Game CheckExistingGame(string userId)
         {
             return _context.GameModel
-                .Include(g => g.Tiles)
-                .FirstOrDefault(g => g.UserId == userId && g.GameEnded == null);
+                .Include(g => g.Tiles).Include(g => g.Score)
+                .FirstOrDefault(g => g.UserId == userId && g.GameStarted == null && g.GameEnded == null);
         }
 
         private Game CreateNewGame(CreateGameRequest request, string userId)
         {
             var game = new Game
             {
-                GameStarted = DateTime.Now,
+                GameStarted = null,
                 Score = new Score(),
                 Difficulty = request.Difficulty,
                 Tiles = new List<Tile>(),

@@ -5,14 +5,14 @@ import authService from "../api-authorization/AuthorizeService";
 
 const ProfileContainer = styled.div`
   text-align: center;
-  margin: 20px auto;
+  padding: 1em;
+  width: 100%;
 `;
 
 const StatsContainer = styled.div`
-  margin: 20px auto;
+  margin: 1em;
   max-width: 400px;
-  padding: 20px;
-  border: 0.25em var(--accent) solid;
+  text-align: left;
 `;
 
 const StatItem = styled.div`
@@ -26,13 +26,13 @@ const Profile = () => {
     const fetchData = async () => {
       try {
         const accessToken = await authService.getAccessToken();
-        const headers = {
-          Authorization: `Bearer ${accessToken}`,
-        };
         const response = await axios.get("/api/user/getuser", {
-          headers: headers,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          }
         });
-        console.log(response);
+        //console.log(response);
         setUserData(response.data);
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -47,10 +47,10 @@ const Profile = () => {
       <h1>Players Profile</h1>
       {userData && (
         <StatsContainer>
-          <h1>Stats</h1>
-          <StatItem>Account: {userData.username}</StatItem>
-          <StatItem>Games Played: {userData.gamesPlayed}</StatItem>
-          <StatItem>Total Score: {userData.score}</StatItem>
+          <StatItem><b>Player:</b> {userData.username}</StatItem>
+          <StatItem><b>Games Played:</b> {userData.gamesPlayed}</StatItem>
+          {/* <StatItem><b>Total Score:</b> {userData.highScore}</StatItem>
+          <StatItem><b>Highest Score:</b> {userData.score}</StatItem> */}
         </StatsContainer>
       )}
     </ProfileContainer>

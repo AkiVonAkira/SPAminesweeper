@@ -6,9 +6,15 @@ import authService from "../api-authorization/AuthorizeService";
 import { Button, Input } from '../Global/GlobalStyles';
 
 const ChatContainer = styled.div`
-  text-align: center;
-  margin: 2em;
-  min-height: 100%;
+  max-height: 100%;
+  overflow: hidden;
+  max-width: 100%;
+`;
+const ChatTextContainer = styled.div`
+  display: flex;
+  flex-direction: column-reverse;
+  max-height: 80vh;
+  overflow:scroll;
 `;
 
 const ChatHeader = styled.h1`
@@ -16,12 +22,15 @@ const ChatHeader = styled.h1`
 `;
 
 const FormGroup = styled.div`
-  margin-bottom: 1em;
+  display: flex;
+  flex-direction:row;
+  flex-wrap: nowrap;
+  gap: 1em;
 `;
 
 const Label = styled.label`
   display: block;
-  margin-bottom: 0.5em;
+  flex-grow: 5;
 `;
 
 const MessageList = styled.ul`
@@ -79,7 +88,13 @@ const Chathub = () => {
           console.log("Received user:", receivedUser);
           const now = new Date();
           const formattedTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
-          const newMessage = `${receivedUser} says: ${receivedMessage} Timestamp: ${formattedTime}`;
+
+          const newMessage = {
+            user: receivedUser,
+            message: receivedMessage,
+            timestamp: formattedTime
+          };
+
           setMessages(prevMessages => {
             const updatedMessages = [...prevMessages, newMessage];
             localStorage.setItem('globalChatHistory', JSON.stringify(updatedMessages));
@@ -108,34 +123,78 @@ const Chathub = () => {
     }
   };
 
-  return (
-    <ChatContainer>
-      <ChatHeader>Global Chat</ChatHeader>
+  if (!isConnected) {
+    return (
+      <ChatContainer>
+        <ChatHeader>Global Chat</ChatHeader>
 
-      <FormGroup>
-        <Label>
-          Message:
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            size="50"
-          />
-        </Label>
-      </FormGroup>
+        <ChatTextContainer>
+          <MessageList>
+            {messages.map((msg, index) => (
+              <MessageItem key={index}>
+                <hr />
+                <div>
+                  <strong>{msg.user}</strong> {msg.timestamp}
+                </div>
+                <div>{msg.message}</div>
+              </MessageItem>
+            ))}
+          </MessageList>
+        </ChatTextContainer>
 
-      <Button onClick={send} disabled={!isConnected}>
-        Send
-      </Button>
+        <hr />
 
-      <hr />
+        <FormGroup>
+          <Label>
+            <Input
+              value={message}
+              pointer-events={"none"}
+              placeholder="Not Signed in"
+            />
+          </Label>
+          <Button onClick={send} disabled={!isConnected}>
+            Send
+          </Button>
+        </FormGroup>
+      </ChatContainer >
+    );
+  }
+  else {
+    return (
+      <ChatContainer>
+        <ChatHeader>Global Chat</ChatHeader>
 
-      <MessageList>
-        {messages.map((msg, index) => (
-          <MessageItem key={index}>{msg}</MessageItem>
-        ))}
-      </MessageList>
-    </ChatContainer >
-  );
+        <ChatTextContainer>
+          <MessageList>
+            {messages.map((msg, index) => (
+              <MessageItem key={index}>
+                <hr />
+                <div>
+                  <strong>{msg.user}</strong> {msg.timestamp}
+                </div>
+                <div>{msg.message}</div>
+              </MessageItem>
+            ))}
+          </MessageList>
+        </ChatTextContainer>
+
+        <hr />
+
+        <FormGroup>
+          <Label>
+            <Input
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Message"
+            />
+          </Label>
+          <Button onClick={send} disabled={!isConnected}>
+            Send
+          </Button>
+        </FormGroup>
+      </ChatContainer >
+    );
+  }
 };
 
 export default Chathub;

@@ -7,7 +7,6 @@ namespace SPAmineseweeper.Models
     {
         [Key]
         public int Id { get; set; }
-        [Required]
         public DateTime? GameStarted { get; set; }
         public DateTime? GameEnded { get; set; }
         public bool GameWon { get; set; }

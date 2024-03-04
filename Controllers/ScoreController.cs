@@ -26,19 +26,18 @@ namespace SPAmineseweeper.Controllers
             _hostingEnvironment = hostingEnvironment;
         }
 
-        // GET: api/gettopfivescores (true or false)
-        [HttpGet("gettopfiveoverall")]
-        public List<ScoreView> GetTopFiveScores(bool isDaily)
+        // GET: api/score/gettopfivescores
+        [HttpGet("gettopfivescores")]
+        public List<ScoreView> GetTopFiveScores()
         {
-            DateTime targetDate = isDaily ? DateTime.Now.Date : DateTime.MinValue;
 
             var topFiveScores = _context.ScoreModel
-                .Where(score => isDaily ? score.Date.Date == targetDate : true)
+                .Where(score => true)
                 .OrderByDescending(g => g.HighScore)
                 .Take(5)
                 .Select(score => new ScoreView
                 {
-                    Id = score.Id,
+                    Username = score.Game.User.UserName,
                     HighScore = score.HighScore
                 })
                 .ToList();
@@ -105,27 +104,3 @@ namespace SPAmineseweeper.Controllers
         }
     }
 }
-
-/*
-Gamla TopFiveScores Controller action
-
-
-[HttpGet]
-public IActionResult GetTopScores(bool isDaily)
-{
-    DateTime targetDate = isDaily ? DateTime.Now.Date : DateTime.MinValue;
-
-    var topScores = _context.ScoreModel
-        .Where(score => isDaily ? score.Date.Date == targetDate : true)
-        .OrderByDescending(g => g.HighScore)
-        .Take(5)
-        .Select(g => new
-        {
-            g.Id,
-            g.HighScore
-        })
-        .ToList();
-
-    return Ok(topScores);
-}
-*/

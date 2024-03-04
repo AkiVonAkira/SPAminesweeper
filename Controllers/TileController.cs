@@ -91,6 +91,12 @@ namespace SPAmineseweeper.Controllers
                 }
                 else
                 {
+                    // Set GameStarted time if it's not already set
+                    if (game.GameStarted == null)
+                    {
+                        game.GameStarted = DateTime.Now;
+                    }
+
                     var revealedTiles = new List<Tile>();
                     TileHelper.RevealTileRecursive(game, clickedTile, revealedTiles);
                 }

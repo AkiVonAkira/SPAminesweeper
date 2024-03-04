@@ -37,6 +37,10 @@ export const Button = styled.button`
   &:hover {
     box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
   }
+
+  &:disabled {
+    background-color: var(--primary);
+  }
 `;
 
 export const Input = styled.input`
@@ -45,7 +49,8 @@ export const Input = styled.input`
   border: 0.25em var(--primary) solid;
   border-radius: 0.5em;
   padding: 0.5em;
-  flex-grow: 1;
+  flex-grow: 2;
+  width: 100%;
 
   &:focus{
     border: 0.25em var(--accent) solid;

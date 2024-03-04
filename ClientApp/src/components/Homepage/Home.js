@@ -1,11 +1,16 @@
 ﻿import React, { Component } from "react";
 import { StartGame } from "../Subpages/StartGame";
 import Chathub from "../Subpages/Chat";
-import Profile from "../Subpages/Profile";
-import Leaderboard from "../Subpages/LeaderBoard";
 import styled from "styled-components";
 import { Button, Input } from "../Global/GlobalStyles";
-import axios from "axios";
+
+const GameContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 1em;
+  //flex-wrap: wrap;
+`;
 
 const BoxContainer = styled.div`
   display: flex;
@@ -15,33 +20,39 @@ const BoxContainer = styled.div`
   border-radius: 0.5em;
   padding: 1em;
   gap: 1em;
-  max-width: 80%;
+  max-width: 100%;
+  flex-grow: 1;
+
+  word-wrap: normal;
+
+
+  @media screen and (min-width: 1300px)
+  {
+    flex-direction: row;
+  }
+  @media screen and (max-width: 720px)
+  {
+    flex-direction: row;
+  }
 `;
 
-const GameContainer = styled.div`
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  gap: 1em;
-  min-height: 100%;
-  flex-wrap: wrap;
-`;
-const DifficultyContainer = styled.div`
+const ChatBoxContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1em;
-`;
-
-const Switch = styled.input`
-  background-color: #c2c2c2;
-  padding: 0.5em 1em;
-  margin: 0;
-  border: 0.25em red solid;
+  border: 0.25em var(--accent) solid;
   border-radius: 0.5em;
-  height: 1.25em;
-  width: 1.25em;
-  margin-right: 1em;
+  padding: 1em;
+  gap: 1em;
+  flex-grow: 1;
+  max-width: 30vw;
+  height: fit-content;
+
+  @media screen and (max-width: 720px)
+  {
+    max-width: 100%;
+  }
+
 `;
 
 const DifficultyGrid = styled.div`
@@ -147,13 +158,9 @@ export class Home extends Component {
   render() {
     return (
       <GameContainer>
-        <BoxContainer>
+        <ChatBoxContainer>
           <Chathub />
-        </BoxContainer>
-        <BoxContainer>
-          <Leaderboard />
-          <Profile />
-        </BoxContainer>
+        </ChatBoxContainer>
         <BoxContainer>
           <StartGame
             ref={(component) => (this.startGameComponent = component)}
@@ -161,26 +168,6 @@ export class Home extends Component {
             difficulty={this.state.difficulty || "easy"}
             bombPercentage={this.state.bombPercentage || 5}
           />
-        </BoxContainer>
-        <BoxContainer>
-          <DifficultyContainer>
-            {<h2>Difficulty</h2>}
-            {this.renderDifficultyGrid()}
-            <div>
-              <Switch
-                type="checkbox"
-                checked={this.state.showCustomSettings}
-                onChange={() =>
-                  this.setState((prevState) => ({
-                    showCustomSettings: !prevState.showCustomSettings,
-                  }))
-                }
-                color="primary"
-              />
-              <span>Show Custom Settings</span>
-            </div>
-            {this.state.showCustomSettings && this.renderCustomSettings()}
-          </DifficultyContainer>
         </BoxContainer>
       </GameContainer>
     );
