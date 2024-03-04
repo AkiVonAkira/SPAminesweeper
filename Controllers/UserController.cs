@@ -31,16 +31,23 @@ namespace SPAmineseweeper.Controllers
             {
                 var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
                 var user = _context.Users.FirstOrDefault(u => u.Id == userId);
-                var games = _context.GameModel.Where(game => game.UserId == userId).ToList();
+                var games = _context.GameModel.Where(game => game.UserId == userId 
+                && game.GameStarted != null 
+                && game.GameEnded != null).ToList();
+
                 double totalScore = 0;
+                double highestScore = 0;
 
                 foreach (var game in games)
                 {
                     if (game.Score != null)
                     {
                         totalScore += game.Score.HighScore;
+                        highestScore = Math.Max(highestScore, game.Score.HighScore);
                     }
                 }
+
+                totalScore = Math.Ceiling(totalScore * 10) / 10;
 
                 if (user == null)
                 {
@@ -51,7 +58,8 @@ namespace SPAmineseweeper.Controllers
                 {
                     Username = user.UserName,
                     Nickname = user.Nickname,
-                    Score = (int)totalScore,
+                    HighScore = totalScore,
+                    Score = highestScore,
                     GamesPlayed = games.Count(),
                 };
 

@@ -5,5 +5,6 @@
         public int Id { get; set; }
         public double HighScore { get; set; }
         public DateTime Date { get; set; }
+        public string Username { get; set; }
     }
 }
